@@ -1,5 +1,5 @@
 {
-    "name": "Ordered JSON",
+    "name": "Go Self Described Structure",
     "dockerComposeFile": [
         "docker-compose.yml"
     ],
