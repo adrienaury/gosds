@@ -1,0 +1,176 @@
+default: "help"
+expose: ["help", "info", "promote", "refresh", "lint", "test"]
+
+properties:
+  # Build Configuration (edit this section to override default values)
+  BY: "" # Leave empty to default to the user.email property in git configuration
+  MODULE: "" # Leave empty to default to the git remote url (e.g. "github.com/<usename>/<reponame>")
+  PROJECT: "" # Leave empty to default to the git repository name (e.g. "<reponame>")
+  LDFLAGS: "" # Add custom standard ldflags, will be applied everywhere everytime
+  BUILD_DIR: "bin" # Subfolder where the build will output, should be ignored by .gitignore
+
+  # Build parameters (use the -props flag or change these default values)
+  tag: "" # Default to the current branch or tag, can be overriden
+  linters: [] # List of linters to run on the lint target, if left empty : run all linters
+  lintersno: # List of linters to exclude on running the lint target
+    [
+      "scopelint",
+      "interfacer",
+      "maligned",
+      "forbidigo",
+      "gci",
+      "golint",
+      "structcheck",
+      "deadcode",
+      "varcheck",
+      "ifshort",
+      "nosnakecase",
+      "exhaustivestruct",
+      "depguard",
+    ]
+
+shell: ["zsh", "-c"]
+
+targets:
+  help:
+    doc: "Print this message"
+    steps:
+      # - $: 'neon -info' => incorrect order, issue to open
+      - $: |
+          print -P "%BAvailable targets%b"
+          print
+          print -P "%B%F{blue}help%f%b         Print this message"
+          print -P "%B%F{blue}info%f%b         Print build informations"
+          print -P "%B%F{blue}promote%f%b      Promote the project with a new tag based on git log history"
+          print -P "%B%F{blue}refresh%f%b      Refresh go modules (add missing and remove unused modules) [info]"
+          print -P "%B%F{blue}lint%f%b         Examine source code and report suspicious constructs [info->refresh]"
+          print -P "%B%F{blue}test%f%b         Run all tests with coverage [info->refresh->lint]"
+          print
+          print -P "%BExample:%b neon -props '{latest: true}' test promote"
+          print
+          print -P "%BTarget dependencies%b"
+          print
+          print -P "→ help"
+          print -P "→ promote"
+          print -P "→ info → refresh → lint → test"
+
+  info:
+    doc: "Print build informations"
+    steps:
+      - $: mkdir -p ={BUILD_DIR}
+      - if: tag == ""
+        then:
+          - $: "git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD"
+            1=: "tag"
+            3x: true
+        else:
+          - $: "echo -n ={tag}"
+            1=: "tag"
+            3x: true
+      - $: 'echo -n "={tag}" | sed -e s/^v//'
+        1=: "version"
+        3x: true
+      - $: "git rev-parse HEAD 2>/dev/null"
+        1=: "commit"
+        3x: true
+      - "date = now()[0:10]"
+      - if: BY == ""
+        then:
+          - $: "git config user.email"
+            1=: "by"
+            3x: true
+        else:
+          - $: "echo -n ={BY}"
+            1=: "by"
+            3x: true
+      - $: 'if expr match "={version}" "v\?[0-9]\+\.[0-9]\+\.[0-9]\+" 1>/dev/null 2>&1; then echo -n "yes"; else echo -n "no"; fi'
+        1=: "is_release"
+        3x: true
+      - $: "cut -f1 -d."
+        <: "=version"
+        1=: "version_major"
+        3x: true
+      - $: "cut -f2 -d."
+        <: "=version"
+        1=: "version_minor"
+        3x: true
+      - $: "cut -f3 -d."
+        <: "=version"
+        1=: "version_patch"
+        3x: true
+      - if: MODULE == ""
+        then:
+          - $: "git config --local remote.origin.url | sed -e 's#^.\\+://##' -e 's/.git$//' | tr '[:upper:]' '[:lower:]'" # .*//(.*)\.git => https://github.com/<user>/<repo>.git => github.com/<user>/<repo>
+            1=: "mod"
+            3x: true
+        else:
+          - $: "echo -n ={MODULE}"
+            1=: "mod"
+            3x: true
+      - if: PROJECT == ""
+        then:
+          - $: "cut -f3 -d/"
+            <: "=mod"
+            1=: "project"
+            3x: true
+        else:
+          - $: "echo -n ={PROJECT}"
+            1=: "project"
+            3x: true
+      - print: |-
+          MODULE  = ={mod}
+          PROJECT = ={project}
+          TAG     = ={tag}
+          COMMIT  = ={commit}
+          DATE    = ={date}
+          BY      = ={by}
+          RELEASE = ={is_release}
+      - if: 'is_release == "yes"'
+        then:
+          - print: |-
+              VERSION = ={version_major}.={version_minor}.={version_patch}
+
+  promote:
+    doc: "Promote the project with a new tag based on git log history"
+    steps:
+      - if: tag==""
+        then:
+          - $: svu next || echo -n v0.1.0
+            3x: true
+            1=: tag
+      - $: "git tag ={tag}"
+        2x: true
+      - $: "echo Promoted to ={tag}"
+
+  refresh:
+    doc: "Refresh go modules (add missing and remove unused modules)"
+    depends: "info"
+    steps:
+      - if: "!exists('go.mod')"
+        then:
+          - $: "go mod init ={mod}"
+      - $: "go mod tidy"
+
+  lint:
+    doc: "Examine source code and report suspicious constructs"
+    depends: ["info", "refresh"]
+    steps:
+      - if: len(linters) == 0
+        then:
+          - $: golangci-lint run --enable-all ={replace(join(appendpath("--disable", lintersno), " "), "/", " ")}
+            :: true
+        else:
+          - $: golangci-lint run ={replace(join(appendpath("--enable", linters), " "), "/", " ")} ={replace(join(appendpath("--disable", lintersno), " "), "/", " ")}
+            :: true
+
+  test:
+    doc: "Run all tests with coverage"
+    depends: ["info", "refresh", "lint"]
+    steps:
+      - $: go test -coverprofile=./={BUILD_DIR}/coverage.txt -covermode=atomic ./...
+
+  bench:
+    doc: "Run all bench"
+    depends: ["info", "refresh"]
+    steps:
+      - $: go test -bench=. -benchmem ./... -run=^# -benchtime=10s | tee ./={BUILD_DIR}/benchstats.txt
