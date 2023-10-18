@@ -49,12 +49,20 @@ func (a *array) AsArray() (Array, bool) { //nolint:ireturn
 	return a, true
 }
 
+func (a *array) AsValue() (Value, bool) { //nolint:ireturn
+	return nil, false
+}
+
 func (a *array) MustObject() Object { //nolint:ireturn
 	return nil
 }
 
 func (a *array) MustArray() Array { //nolint:ireturn
 	return a
+}
+
+func (a *array) MustValue() Value { //nolint:ireturn
+	return nil
 }
 
 func (a *array) Primitive() any {

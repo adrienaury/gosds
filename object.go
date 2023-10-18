@@ -54,11 +54,19 @@ func (o *object) AsArray() (Array, bool) { //nolint:ireturn
 	return nil, false
 }
 
+func (o *object) AsValue() (Value, bool) { //nolint:ireturn
+	return nil, false
+}
+
 func (o *object) MustObject() Object { //nolint:ireturn
 	return o
 }
 
 func (o *object) MustArray() Array { //nolint:ireturn
+	return nil
+}
+
+func (o *object) MustValue() Value { //nolint:ireturn
 	return nil
 }
 
