@@ -20,7 +20,7 @@ type Builder interface {
 	Finalize() Node
 }
 
-type SonicBuilder interface {
+type SonicBuilder interface { //nolint:interfacebloat
 	OnNull() error
 	OnBool(v bool) error
 	OnString(v string) error
@@ -31,6 +31,8 @@ type SonicBuilder interface {
 	OnObjectEnd() error
 	OnArrayBegin(capacity int) error
 	OnArrayEnd() error
+
+	Finalize() Node
 }
 
 var (
@@ -322,6 +324,7 @@ func (b *builder) OnObjectBegin(capacity int) error {
 		object := NewObjectWithCapacity(b.current, capacity)
 		b.current.MustObject().SetValueForKey(*b.key, object)
 		b.current = object
+		b.key = nil
 	case b.isObject && b.key == nil:
 		return ErrMissingKey
 	default:
@@ -384,6 +387,7 @@ func (b *builder) OnArrayBegin(capacity int) error {
 		array := NewArrayWithCapacity(b.current, capacity)
 		b.current.MustObject().SetValueForKey(*b.key, array)
 		b.current = array
+		b.key = nil
 	case b.isObject && b.key == nil:
 		return ErrMissingKey
 	default:

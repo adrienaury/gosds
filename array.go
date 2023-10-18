@@ -1,5 +1,7 @@
 package gosds
 
+import "encoding/json"
+
 type Array interface {
 	Node
 
@@ -81,18 +83,22 @@ func (a *array) ValueAtIndex(index int) any {
 }
 
 func (a *array) SetValueAtIndex(index int, value any) {
-	switch value.(type) {
-	case string, int, bool:
+	switch typedValue := value.(type) {
+	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, json.Number:
 		a.values[index] = NewValue(a, value)
+	case Node:
+		a.values[index] = typedValue
 	default:
 		panic("unimplemented")
 	}
 }
 
 func (a *array) AppendValue(value any) {
-	switch value.(type) {
-	case string, int, bool:
+	switch typedValue := value.(type) {
+	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, json.Number:
 		a.values = append(a.values, NewValue(a, value))
+	case Node:
+		a.values = append(a.values, typedValue)
 	default:
 		panic("unimplemented")
 	}

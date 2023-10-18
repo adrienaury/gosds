@@ -39,3 +39,14 @@ func TestBuilder(t *testing.T) {
 
 	fmt.Println(builder.Finalize().MustObject().PrimitiveObject())
 }
+
+// func TestSonicBuilder(t *testing.T) {
+// 	t.Parallel()
+
+// 	jstr := `{"age":42,"name":"John","surname":"Doe","address":{"town":"Purple Town"},"mail":"john.doe@domain.fr"}`
+// 	builder := gosds.NewBuilderSonic()
+
+// 	assert.NoError(t, ast.Preorder(jstr, builder, &ast.VisitorOptions{OnlyNumber: true}))
+
+// 	fmt.Println(builder.Finalize().MustObject().PrimitiveObject())
+// }
