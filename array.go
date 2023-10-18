@@ -15,14 +15,14 @@ type Array interface {
 	PrimitiveArray() []any
 }
 
-func NewArray(parent Node) Array { //nolint:ireturn
+func newArray(parent Node) Array { //nolint:ireturn
 	return &array{
 		values: []any{},
 		parent: parent,
 	}
 }
 
-func NewArrayWithCapacity(parent Node, capacity int) Array { //nolint:ireturn
+func newArrayWithCapacity(parent Node, capacity int) Array { //nolint:ireturn
 	return &array{
 		values: make([]any, capacity),
 		parent: parent,
@@ -85,22 +85,22 @@ func (a *array) ValueAtIndex(index int) any {
 func (a *array) SetValueAtIndex(index int, value any) {
 	switch typedValue := value.(type) {
 	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, json.Number:
-		a.values[index] = NewValue(a, value)
+		a.values[index] = newValue(a, value)
 	case Node:
 		a.values[index] = typedValue
 	default:
-		panic("unimplemented")
+		panic("not accepted")
 	}
 }
 
 func (a *array) AppendValue(value any) {
 	switch typedValue := value.(type) {
 	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, json.Number:
-		a.values = append(a.values, NewValue(a, value))
+		a.values = append(a.values, newValue(a, value))
 	case Node:
 		a.values = append(a.values, typedValue)
 	default:
-		panic("unimplemented")
+		panic("not accepted")
 	}
 }
 

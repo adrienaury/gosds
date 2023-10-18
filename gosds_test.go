@@ -8,16 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTest(t *testing.T) {
-	t.Parallel()
-
-	root := gosds.NewObject(nil)
-
-	root.SetValueForKey("name", "adrien")
-
-	fmt.Println(root.NodeForKey("name").Parent())
-}
-
 func TestBuilder(t *testing.T) {
 	t.Parallel()
 

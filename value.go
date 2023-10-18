@@ -1,6 +1,16 @@
 package gosds
 
-func NewValue(parent Node, val any) Node { //nolint:ireturn
+type Value interface {
+	Node
+
+	Value() any
+
+	// Int64() (int64, bool)
+
+	// MustInt64() int64
+}
+
+func newValue(parent Node, val any) Value { //nolint:ireturn
 	return &value{
 		parent: parent,
 		value:  val,

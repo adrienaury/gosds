@@ -17,7 +17,7 @@ type Object interface {
 	PrimitiveObject() map[string]any
 }
 
-func NewObject(parent Node) Object { //nolint:ireturn
+func newObject(parent Node) Object { //nolint:ireturn
 	return &object{
 		inner:  map[string]Node{},
 		keys:   []string{},
@@ -25,7 +25,7 @@ func NewObject(parent Node) Object { //nolint:ireturn
 	}
 }
 
-func NewObjectWithCapacity(parent Node, capacity int) Object { //nolint:ireturn
+func newObjectWithCapacity(parent Node, capacity int) Object { //nolint:ireturn
 	return &object{
 		inner:  make(map[string]Node, capacity),
 		keys:   make([]string, 0, capacity),
@@ -96,11 +96,11 @@ func (o *object) ValueForKey(key string) (any, bool) {
 func (o *object) SetValueForKey(key string, value any) {
 	switch typedValue := value.(type) {
 	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, json.Number:
-		o.inner[key] = NewValue(o, value)
+		o.inner[key] = newValue(o, value)
 	case Node:
 		o.inner[key] = typedValue
 	default:
-		panic("unimplemented")
+		panic("not accepted")
 	}
 }
 
