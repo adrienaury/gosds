@@ -20,6 +20,13 @@ func NewArray(parent Node) Array { //nolint:ireturn
 	}
 }
 
+func NewArrayWithCapacity(parent Node, capacity int) Array { //nolint:ireturn
+	return &array{
+		values: make([]any, capacity),
+		parent: parent,
+	}
+}
+
 type array struct {
 	values []any
 

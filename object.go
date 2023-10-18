@@ -23,6 +23,14 @@ func NewObject(parent Node) Object { //nolint:ireturn
 	}
 }
 
+func NewObjectWithCapacity(parent Node, capacity int) Object { //nolint:ireturn
+	return &object{
+		inner:  make(map[string]Node, capacity),
+		keys:   make([]string, 0, capacity),
+		parent: parent,
+	}
+}
+
 type object struct {
 	inner map[string]Node
 	keys  []string

@@ -36,12 +36,18 @@ type SonicBuilder interface {
 var (
 	ErrFinalized             = errors.New("node is finalized, can't be edited")
 	ErrNoOpenedArrayOrObject = errors.New("can't close object or array because there is no opened node")
+	ErrMissingKey            = errors.New("can't create value without key")
+	ErrDoubleKey             = errors.New("already have a key for value")
+	ErrUnusedKey             = errors.New("key for value is unused")
 )
 
 type builder struct {
 	current   Node
 	isObject  bool // true = object, false = array
 	finalized Node
+
+	// for SonicBuilder
+	key *string
 }
 
 func NewBuilder() Builder { //nolint:ireturn
@@ -49,6 +55,16 @@ func NewBuilder() Builder { //nolint:ireturn
 		current:   nil,
 		isObject:  false,
 		finalized: nil,
+		key:       nil,
+	}
+}
+
+func NewBuilderSonic() SonicBuilder { //nolint:ireturn
+	return &builder{
+		current:   nil,
+		isObject:  false,
+		finalized: nil,
+		key:       nil,
 	}
 }
 
@@ -204,4 +220,199 @@ func (b *builder) StartObject(key string) error {
 
 func (b *builder) Finalize() Node { //nolint:ireturn
 	return b.finalized
+}
+
+func (b *builder) OnNull() error {
+	switch {
+	case b.finalized != nil:
+		return ErrFinalized
+	case b.current == nil:
+		b.finalized = NewValue(nil, nil)
+	case b.isObject && b.key != nil:
+		b.current.MustObject().SetValueForKey(*b.key, nil)
+		b.key = nil
+	case b.isObject && b.key == nil:
+		return ErrMissingKey
+	default:
+		b.current.MustArray().AppendValue(nil)
+	}
+
+	return nil
+}
+
+func (b *builder) OnBool(val bool) error {
+	switch {
+	case b.finalized != nil:
+		return ErrFinalized
+	case b.current == nil:
+		b.finalized = NewValue(nil, val)
+	case b.isObject && b.key != nil:
+		b.current.MustObject().SetValueForKey(*b.key, val)
+		b.key = nil
+	case b.isObject && b.key == nil:
+		return ErrMissingKey
+	default:
+		b.current.MustArray().AppendValue(val)
+	}
+
+	return nil
+}
+
+func (b *builder) OnString(val string) error {
+	switch {
+	case b.finalized != nil:
+		return ErrFinalized
+	case b.current == nil:
+		b.finalized = NewValue(nil, val)
+	case b.isObject && b.key != nil:
+		b.current.MustObject().SetValueForKey(*b.key, val)
+		b.key = nil
+	case b.isObject && b.key == nil:
+		return ErrMissingKey
+	default:
+		b.current.MustArray().AppendValue(val)
+	}
+
+	return nil
+}
+
+func (b *builder) OnInt64(_ int64, num json.Number) error {
+	switch {
+	case b.finalized != nil:
+		return ErrFinalized
+	case b.current == nil:
+		b.finalized = NewValue(nil, num)
+	case b.isObject && b.key != nil:
+		b.current.MustObject().SetValueForKey(*b.key, num)
+		b.key = nil
+	case b.isObject && b.key == nil:
+		return ErrMissingKey
+	default:
+		b.current.MustArray().AppendValue(num)
+	}
+
+	return nil
+}
+
+func (b *builder) OnFloat64(_ float64, num json.Number) error {
+	switch {
+	case b.finalized != nil:
+		return ErrFinalized
+	case b.current == nil:
+		b.finalized = NewValue(nil, num)
+	case b.isObject && b.key != nil:
+		b.current.MustObject().SetValueForKey(*b.key, num)
+		b.key = nil
+	case b.isObject && b.key == nil:
+		return ErrMissingKey
+	default:
+		b.current.MustArray().AppendValue(num)
+	}
+
+	return nil
+}
+
+func (b *builder) OnObjectBegin(capacity int) error {
+	switch {
+	case b.finalized != nil:
+		return ErrFinalized
+	case b.current == nil:
+		b.current = NewObjectWithCapacity(nil, capacity)
+	case b.isObject && b.key != nil:
+		object := NewObjectWithCapacity(b.current, capacity)
+		b.current.MustObject().SetValueForKey(*b.key, object)
+		b.current = object
+	case b.isObject && b.key == nil:
+		return ErrMissingKey
+	default:
+		object := NewObjectWithCapacity(b.current, capacity)
+		b.current.MustArray().AppendValue(object)
+		b.current = object
+	}
+
+	b.isObject = true
+
+	return nil
+}
+
+func (b *builder) OnObjectKey(key string) error {
+	switch {
+	case b.finalized != nil:
+		return ErrFinalized
+	case b.current == nil:
+		return ErrNoOpenedArrayOrObject
+	case b.isObject && b.key != nil:
+		return ErrDoubleKey
+	case b.isObject && b.key == nil:
+		b.key = &key
+	default:
+		return ErrNoOpenedArrayOrObject
+	}
+
+	return nil
+}
+
+func (b *builder) OnObjectEnd() error {
+	switch {
+	case b.finalized != nil:
+		return ErrFinalized
+	case b.current == nil:
+		return ErrNoOpenedArrayOrObject
+	case b.isObject && b.key != nil:
+		return ErrUnusedKey
+	case b.isObject && b.key == nil:
+		if b.current.Parent() == nil {
+			b.finalized = b.current
+		} else {
+			b.current = b.current.Parent()
+			_, b.isObject = b.current.AsObject()
+		}
+	default:
+		return ErrNoOpenedArrayOrObject
+	}
+
+	return nil
+}
+
+func (b *builder) OnArrayBegin(capacity int) error {
+	switch {
+	case b.finalized != nil:
+		return ErrFinalized
+	case b.current == nil:
+		b.current = NewArrayWithCapacity(nil, capacity)
+	case b.isObject && b.key != nil:
+		array := NewArrayWithCapacity(b.current, capacity)
+		b.current.MustObject().SetValueForKey(*b.key, array)
+		b.current = array
+	case b.isObject && b.key == nil:
+		return ErrMissingKey
+	default:
+		array := NewArrayWithCapacity(b.current, capacity)
+		b.current.MustArray().AppendValue(array)
+		b.current = array
+	}
+
+	b.isObject = false
+
+	return nil
+}
+
+func (b *builder) OnArrayEnd() error {
+	switch {
+	case b.finalized != nil:
+		return ErrFinalized
+	case b.current == nil:
+		return ErrNoOpenedArrayOrObject
+	case b.isObject:
+		return ErrNoOpenedArrayOrObject
+	default:
+		if b.current.Parent() == nil {
+			b.finalized = b.current
+		} else {
+			b.current = b.current.Parent()
+			_, b.isObject = b.current.AsObject()
+		}
+	}
+
+	return nil
 }
