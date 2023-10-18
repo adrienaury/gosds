@@ -10,6 +10,9 @@ type Object interface {
 	RemoveValueForKey(key string)
 
 	Keys() []string
+
+	// PrimitiveObject returns a representation of the object as map[string]any
+	PrimitiveObject() map[string]any
 }
 
 func NewObject() Object { //nolint:ireturn
@@ -35,6 +38,22 @@ func (o *object) Value() any {
 	return o
 }
 
+func (o *object) AsObject() (Object, bool) { //nolint:ireturn
+	return o, true
+}
+
+func (o *object) AsArray() (Array, bool) { //nolint:ireturn
+	return nil, false
+}
+
+func (o *object) Primitive() any {
+	panic("not implemented")
+}
+
+func (o *object) PrimitiveObject() map[string]any {
+	panic("not implemented")
+}
+
 func (o *object) NodeForKey(key string) Node { //nolint:ireturn
 	return o.inner[key]
 }
@@ -49,7 +68,7 @@ func (o *object) SetValueForKey(key string, value any) {
 	switch value.(type) {
 	case string, int, bool:
 		o.inner[key] = NewValue(o, value)
-	case map[string]any:
+	default:
 		panic("unimplemented")
 	}
 }

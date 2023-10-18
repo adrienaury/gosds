@@ -9,7 +9,7 @@ func NewValue(parent Node, val any) Node { //nolint:ireturn
 
 type value struct {
 	parent Node
-	value  any
+	value  any // can be string, float64, bool or nil interface
 }
 
 func (v *value) Parent() Node { //nolint:ireturn
@@ -17,5 +17,17 @@ func (v *value) Parent() Node { //nolint:ireturn
 }
 
 func (v *value) Value() any {
+	return v.value
+}
+
+func (v *value) AsObject() (Object, bool) { //nolint:ireturn
+	return nil, false
+}
+
+func (v *value) AsArray() (Array, bool) { //nolint:ireturn
+	return nil, false
+}
+
+func (v *value) Primitive() any {
 	return v.value
 }
