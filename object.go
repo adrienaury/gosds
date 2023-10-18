@@ -1,7 +1,5 @@
 package gosds
 
-import "encoding/json"
-
 type Object interface {
 	Node
 
@@ -95,7 +93,7 @@ func (o *object) ValueForKey(key string) (any, bool) {
 
 func (o *object) SetValueForKey(key string, value any) {
 	switch typedValue := value.(type) {
-	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, json.Number:
+	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:
 		o.inner[key] = newValue(o, value)
 	case Node:
 		o.inner[key] = typedValue

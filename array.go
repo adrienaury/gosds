@@ -1,7 +1,5 @@
 package gosds
 
-import "encoding/json"
-
 type Array interface {
 	Node
 
@@ -84,7 +82,7 @@ func (a *array) ValueAtIndex(index int) any {
 
 func (a *array) SetValueAtIndex(index int, value any) {
 	switch typedValue := value.(type) {
-	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, json.Number:
+	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:
 		a.values[index] = newValue(a, value)
 	case Node:
 		a.values[index] = typedValue
@@ -95,7 +93,7 @@ func (a *array) SetValueAtIndex(index int, value any) {
 
 func (a *array) AppendValue(value any) {
 	switch typedValue := value.(type) {
-	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, json.Number:
+	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:
 		a.values = append(a.values, newValue(a, value))
 	case Node:
 		a.values = append(a.values, typedValue)

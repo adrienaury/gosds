@@ -5,8 +5,9 @@ type Value interface {
 
 	Value() any
 
-	// Int64() (int64, bool)
+	Set(val any)
 
+	// Int64() (int64, bool)
 	// MustInt64() int64
 }
 
@@ -48,4 +49,13 @@ func (v *value) MustArray() Array { //nolint:ireturn
 
 func (v *value) Primitive() any {
 	return v.value
+}
+
+func (v *value) Set(val any) {
+	switch val.(type) {
+	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:
+		v.value = val
+	default:
+		panic("not accepted")
+	}
 }
