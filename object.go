@@ -15,11 +15,11 @@ type Object interface {
 	PrimitiveObject() map[string]any
 }
 
-func NewObject() Object { //nolint:ireturn
+func NewObject(parent Node) Object { //nolint:ireturn
 	return &object{
 		inner:  map[string]Node{},
 		keys:   []string{},
-		parent: nil,
+		parent: parent,
 	}
 }
 
@@ -46,12 +46,31 @@ func (o *object) AsArray() (Array, bool) { //nolint:ireturn
 	return nil, false
 }
 
+func (o *object) MustObject() Object { //nolint:ireturn
+	return o
+}
+
+func (o *object) MustArray() Array { //nolint:ireturn
+	return nil
+}
+
 func (o *object) Primitive() any {
-	panic("not implemented")
+	result := make(map[string]any, len(o.keys))
+
+	for key, val := range o.inner {
+		switch typedVal := val.(type) {
+		case Node:
+			result[key] = typedVal.Primitive()
+		default:
+			result[key] = val
+		}
+	}
+
+	return result
 }
 
 func (o *object) PrimitiveObject() map[string]any {
-	panic("not implemented")
+	return o.Primitive().(map[string]any) //nolint:forcetypeassert
 }
 
 func (o *object) NodeForKey(key string) Node { //nolint:ireturn
@@ -65,9 +84,11 @@ func (o *object) ValueForKey(key string) (any, bool) {
 }
 
 func (o *object) SetValueForKey(key string, value any) {
-	switch value.(type) {
-	case string, int, bool:
+	switch typedValue := value.(type) {
+	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool:
 		o.inner[key] = NewValue(o, value)
+	case Node:
+		o.inner[key] = typedValue
 	default:
 		panic("unimplemented")
 	}

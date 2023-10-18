@@ -28,6 +28,14 @@ func (v *value) AsArray() (Array, bool) { //nolint:ireturn
 	return nil, false
 }
 
+func (v *value) MustObject() Object { //nolint:ireturn
+	return nil
+}
+
+func (v *value) MustArray() Array { //nolint:ireturn
+	return nil
+}
+
 func (v *value) Primitive() any {
 	return v.value
 }

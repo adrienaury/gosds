@@ -7,6 +7,9 @@ type Node interface {
 	AsObject() (Object, bool)
 	AsArray() (Array, bool)
 
+	MustObject() Object
+	MustArray() Array
+
 	// Primitive returns a representation of the node with following types :
 	// - objects as map[string]any
 	// - arrays as []any

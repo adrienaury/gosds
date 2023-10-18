@@ -13,10 +13,10 @@ type Array interface {
 	PrimitiveArray() []any
 }
 
-func NewArray() Array { //nolint:ireturn
+func NewArray(parent Node) Array { //nolint:ireturn
 	return &array{
 		values: []any{},
-		parent: nil,
+		parent: parent,
 	}
 }
 
@@ -42,12 +42,31 @@ func (a *array) AsArray() (Array, bool) { //nolint:ireturn
 	return a, true
 }
 
+func (a *array) MustObject() Object { //nolint:ireturn
+	return nil
+}
+
+func (a *array) MustArray() Array { //nolint:ireturn
+	return a
+}
+
 func (a *array) Primitive() any {
-	panic("not implemented")
+	result := make([]any, len(a.values))
+
+	for index, val := range a.values {
+		switch typedVal := val.(type) {
+		case Node:
+			result[index] = typedVal.Primitive()
+		default:
+			result[index] = val
+		}
+	}
+
+	return result
 }
 
 func (a *array) PrimitiveArray() []any {
-	panic("not implemented")
+	return a.Primitive().([]any) //nolint:forcetypeassert
 }
 
 func (a *array) ValueAtIndex(index int) any {
