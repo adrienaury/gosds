@@ -1,5 +1,11 @@
 package gosds
 
+import (
+	"io"
+
+	"github.com/mailru/easyjson/jwriter"
+)
+
 type Object interface {
 	Node
 
@@ -13,6 +19,13 @@ type Object interface {
 
 	// PrimitiveObject returns a representation of the object as map[string]any
 	PrimitiveObject() map[string]any
+}
+
+type object struct {
+	inner map[string]Node
+	keys  []string
+
+	parent Node
 }
 
 func newObject(parent Node) Object { //nolint:ireturn
@@ -29,13 +42,6 @@ func newObjectWithCapacity(parent Node, capacity int) Object { //nolint:ireturn
 		keys:   make([]string, 0, capacity),
 		parent: parent,
 	}
-}
-
-type object struct {
-	inner map[string]Node
-	keys  []string
-
-	parent Node
 }
 
 func (o *object) Parent() Node { //nolint:ireturn
@@ -74,12 +80,7 @@ func (o *object) Primitive() any {
 	result := make(map[string]any, len(o.keys))
 
 	for key, val := range o.inner {
-		switch typedVal := val.(type) {
-		case Node:
-			result[key] = typedVal.Primitive()
-		default:
-			result[key] = val
-		}
+		result[key] = val.Primitive()
 	}
 
 	return result
@@ -100,6 +101,7 @@ func (o *object) ValueForKey(key string) (any, bool) {
 }
 
 func (o *object) SetValueForKey(key string, value any) {
+	o.keys = append(o.keys, key)
 	switch typedValue := value.(type) {
 	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:
 		o.inner[key] = newValue(o, value)
@@ -116,4 +118,25 @@ func (o *object) RemoveValueForKey(key string) {
 
 func (o *object) Keys() []string {
 	return o.keys
+}
+
+func (o *object) MarshalEncode(output *jwriter.Writer) {
+	output.RawByte('{')
+
+	for index, key := range o.keys {
+		if index > 0 {
+			output.RawByte(',')
+		}
+
+		output.String(key)
+		output.RawByte(':')
+
+		o.NodeForKey(key).MarshalEncode(output)
+	}
+
+	output.RawByte('}')
+}
+
+func (o *object) MarshalWrite(output io.Writer) error {
+	return MarshalWrite(o, output)
 }

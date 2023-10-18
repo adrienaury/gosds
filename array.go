@@ -1,5 +1,11 @@
 package gosds
 
+import (
+	"io"
+
+	"github.com/mailru/easyjson/jwriter"
+)
+
 type Array interface {
 	Node
 
@@ -13,24 +19,24 @@ type Array interface {
 	PrimitiveArray() []any
 }
 
+type array struct {
+	values []Node
+
+	parent Node
+}
+
 func newArray(parent Node) Array { //nolint:ireturn
 	return &array{
-		values: []any{},
+		values: []Node{},
 		parent: parent,
 	}
 }
 
 func newArrayWithCapacity(parent Node, capacity int) Array { //nolint:ireturn
 	return &array{
-		values: make([]any, capacity),
+		values: make([]Node, 0, capacity),
 		parent: parent,
 	}
-}
-
-type array struct {
-	values []any
-
-	parent Node
 }
 
 func (a *array) Parent() Node { //nolint:ireturn
@@ -69,12 +75,7 @@ func (a *array) Primitive() any {
 	result := make([]any, len(a.values))
 
 	for index, val := range a.values {
-		switch typedVal := val.(type) {
-		case Node:
-			result[index] = typedVal.Primitive()
-		default:
-			result[index] = val
-		}
+		result[index] = val.Primitive()
 	}
 
 	return result
@@ -85,7 +86,7 @@ func (a *array) PrimitiveArray() []any {
 }
 
 func (a *array) ValueAtIndex(index int) any {
-	return a.values[index]
+	return a.values[index].Value()
 }
 
 func (a *array) SetValueAtIndex(index int, value any) {
@@ -112,4 +113,22 @@ func (a *array) AppendValue(value any) {
 
 func (a *array) Size() int {
 	return len(a.values)
+}
+
+func (a *array) MarshalEncode(output *jwriter.Writer) {
+	output.RawByte('[')
+
+	for index, node := range a.values {
+		if index > 0 {
+			output.RawByte(',')
+		}
+
+		node.MarshalEncode(output)
+	}
+
+	output.RawByte(']')
+}
+
+func (a *array) MarshalWrite(output io.Writer) error {
+	return MarshalWrite(a, output)
 }

@@ -1,5 +1,12 @@
 package gosds
 
+import (
+	"fmt"
+	"io"
+
+	"github.com/mailru/easyjson/jwriter"
+)
+
 type Node interface {
 	Parent() Node
 	Value() any
@@ -17,4 +24,22 @@ type Node interface {
 	// - arrays as []any
 	// - values as string, float64, bool or nil interface
 	Primitive() any
+
+	MarshalEncode(*jwriter.Writer)
+	MarshalWrite(io.Writer) error
+}
+
+func MarshalWrite(node Node, output io.Writer) error {
+	writer := &jwriter.Writer{NoEscapeHTML: true} //nolint:exhaustruct
+	node.MarshalEncode(writer)
+
+	if writer.Error != nil {
+		return fmt.Errorf("%w", writer.Error)
+	}
+
+	if _, err := writer.DumpTo(output); err != nil {
+		return fmt.Errorf("%w", err)
+	}
+
+	return nil
 }

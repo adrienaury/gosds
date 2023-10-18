@@ -1,5 +1,11 @@
 package gosds
 
+import (
+	"io"
+
+	"github.com/mailru/easyjson/jwriter"
+)
+
 type Value interface {
 	Node
 
@@ -66,4 +72,45 @@ func (v *value) Set(val any) {
 	default:
 		panic("not accepted")
 	}
+}
+
+func (v *value) MarshalEncode(output *jwriter.Writer) { //nolint:cyclop
+	switch typedValue := v.value.(type) {
+	case string:
+		output.String(typedValue)
+	case int:
+		output.Int(typedValue)
+	case int64:
+		output.Int64(typedValue)
+	case int32:
+		output.Int32(typedValue)
+	case int16:
+		output.Int16(typedValue)
+	case int8:
+		output.Int8(typedValue)
+	case uint:
+		output.Uint(typedValue)
+	case uint64:
+		output.Uint64(typedValue)
+	case uint32:
+		output.Uint32(typedValue)
+	case uint16:
+		output.Uint16(typedValue)
+	case uint8:
+		output.Uint8(typedValue)
+	case float64:
+		output.Float64(typedValue)
+	case float32:
+		output.Float32(typedValue)
+	case bool:
+		output.Bool(typedValue)
+	case Number:
+		output.RawString(typedValue.String())
+	case nil:
+		output.RawString("null")
+	}
+}
+
+func (v *value) MarshalWrite(output io.Writer) error {
+	return MarshalWrite(v, output)
 }

@@ -1,7 +1,7 @@
 package gosds_test
 
 import (
-	"fmt"
+	"os"
 	"testing"
 
 	"github.com/adrienaury/gosds"
@@ -27,16 +27,15 @@ func TestBuilder(t *testing.T) {
 	assert.NoError(t, builder.EndObjectOrArray())
 	assert.NoError(t, builder.EndObjectOrArray())
 
-	fmt.Println(builder.Finalize().MustObject().PrimitiveObject())
+	assert.NoError(t, builder.Finalize().MarshalWrite(os.Stdout))
 }
 
 // func TestSonicBuilder(t *testing.T) {
 // 	t.Parallel()
 
-// 	jstr := `{"age":42,"name":"John","surname":"Doe","address":{"town":"Purple Town"},"mail":"john.doe@domain.fr"}`
+// 	jstr := `{"age":42,"name":"John","surname":"Doe","address":{"town":"Purple Town"},"tags":[1,true]}`
 // 	builder := gosds.NewBuilderSonic()
 
 // 	assert.NoError(t, ast.Preorder(jstr, builder, &ast.VisitorOptions{OnlyNumber: true}))
-
-// 	fmt.Println(builder.Finalize().MustObject().PrimitiveObject())
+// 	assert.NoError(t, gosds.EncodeJSON(builder.Finalize(), os.Stdout))
 // }
