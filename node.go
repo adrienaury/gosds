@@ -25,6 +25,10 @@ type Node interface {
 	// - values as string, float64, bool or nil interface
 	Primitive() any
 
+	JSONObject
+}
+
+type JSONObject interface {
 	MarshalEncode(*jwriter.Writer)
 	MarshalWrite(io.Writer) error
 }
