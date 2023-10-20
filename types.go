@@ -4,6 +4,14 @@ import "encoding/json"
 
 type Number = json.Number
 
+type Indexed interface {
+	NodeAtIndex(index int) Node
+	ValueAtIndex(index int) any
+	SetValueAtIndex(index int, value any)
+	RemoveValueAtIndex(index int)
+	Size() int
+}
+
 //nolint:wsl,nlreturn
 func set(values []Node, val any, index int, parent Node) []Node {
 	switch typedValue := val.(type) {

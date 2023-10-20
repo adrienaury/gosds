@@ -10,21 +10,20 @@ type Object interface {
 	Node
 
 	NodeForKey(key string) Node
-	NodeAtIndex(index int) Node
 
 	ValueForKey(key string) (any, bool)
 	SetValueForKey(key string, value any)
 	RemoveValueForKey(key string)
 
-	ValueAtIndex(index int) (any, bool)
-	SetValueAtIndex(index int, value any)
-	RemoveValueAtIndex(index int)
+	Indexed
 
 	Keys() []string
 
 	// PrimitiveObject returns a representation of the object as map[string]any
 	PrimitiveObject() map[string]any
 }
+
+type ObjectAccess interface{}
 
 type object struct {
 	values  []Node
@@ -135,12 +134,12 @@ func (o *object) RemoveValueForKey(key string) {
 	}
 }
 
-func (o *object) ValueAtIndex(index int) (any, bool) {
+func (o *object) ValueAtIndex(index int) any {
 	if index >= len(o.values) {
-		return nil, false
+		return nil
 	}
 
-	return o.values[index].Value(), true
+	return o.values[index].Value()
 }
 
 func (o *object) SetValueAtIndex(index int, val any) {
@@ -155,6 +154,10 @@ func (o *object) RemoveValueAtIndex(index int) {
 	delete(o.indexes, o.keys[index])
 	o.keys = append(o.keys[:index], o.keys[index+1:]...)
 	o.values = append(o.values[:index], o.values[index+1:]...)
+}
+
+func (o *object) Size() int {
+	return len(o.keys)
 }
 
 func (o *object) Keys() []string {
