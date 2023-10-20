@@ -17,6 +17,8 @@ type Object interface {
 	RemoveValueForKey(key string)
 
 	ValueAtIndex(index int) (any, bool)
+	SetValueAtIndex(index int, value any)
+	RemoveValueAtIndex(index int)
 
 	Keys() []string
 
@@ -139,6 +141,20 @@ func (o *object) ValueAtIndex(index int) (any, bool) {
 	}
 
 	return o.values[index].Value(), true
+}
+
+func (o *object) SetValueAtIndex(index int, val any) {
+	o.values = set(o.values, val, index, o)
+}
+
+func (o *object) RemoveValueAtIndex(index int) {
+	if index >= len(o.values) {
+		return
+	}
+
+	delete(o.indexes, o.keys[index])
+	o.keys = append(o.keys[:index], o.keys[index+1:]...)
+	o.values = append(o.values[:index], o.values[index+1:]...)
 }
 
 func (o *object) Keys() []string {
