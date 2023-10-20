@@ -10,10 +10,13 @@ type Object interface {
 	Node
 
 	NodeForKey(key string) Node
+	NodeAtIndex(index int) Node
 
 	ValueForKey(key string) (any, bool)
 	SetValueForKey(key string, value any)
 	RemoveValueForKey(key string)
+
+	ValueAtIndex(index int) (any, bool)
 
 	Keys() []string
 
@@ -104,6 +107,10 @@ func (o *object) NodeForKey(key string) Node { //nolint:ireturn
 	return o.values[o.indexes[key]]
 }
 
+func (o *object) NodeAtIndex(index int) Node { //nolint:ireturn
+	return o.values[index]
+}
+
 func (o *object) ValueForKey(key string) (any, bool) {
 	idx, has := o.indexes[key]
 
@@ -124,6 +131,14 @@ func (o *object) RemoveValueForKey(key string) {
 		o.values = append(o.values[:idx], o.values[idx+1:]...)
 		delete(o.indexes, key)
 	}
+}
+
+func (o *object) ValueAtIndex(index int) (any, bool) {
+	if index >= len(o.values) {
+		return nil, false
+	}
+
+	return o.values[index].Value(), true
 }
 
 func (o *object) Keys() []string {

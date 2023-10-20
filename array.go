@@ -9,6 +9,8 @@ import (
 type Array interface {
 	Node
 
+	NodeAtIndex(index int) Node
+
 	ValueAtIndex(index int) any
 	SetValueAtIndex(index int, value any)
 	AppendValue(value any)
@@ -94,6 +96,10 @@ func (a *array) PrimitiveArray() []any {
 
 func (a *array) ValueAtIndex(index int) any {
 	return a.values[index].Value()
+}
+
+func (a *array) NodeAtIndex(index int) Node { //nolint:ireturn
+	return a.values[index]
 }
 
 func (a *array) SetValueAtIndex(index int, val any) {
