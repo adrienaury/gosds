@@ -23,6 +23,10 @@ type value struct {
 	value  any
 }
 
+func NewValue(val any) Value { //nolint:ireturn
+	return newValue(val)
+}
+
 func newValue(val any) *value {
 	return &value{
 		parent: nil,

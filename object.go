@@ -34,7 +34,15 @@ type object struct {
 	index  int
 }
 
-func newObject() Object { //nolint:ireturn
+func NewObject() Object { //nolint:ireturn
+	return newObject()
+}
+
+func NewObjectWithCapacity(capacity int) Object { //nolint:ireturn
+	return newObjectWithCapacity(capacity)
+}
+
+func newObject() *object {
 	return &object{
 		values:  []Node{},
 		keys:    []string{},
@@ -44,7 +52,7 @@ func newObject() Object { //nolint:ireturn
 	}
 }
 
-func newObjectWithCapacity(capacity int) Object { //nolint:ireturn
+func newObjectWithCapacity(capacity int) *object {
 	return &object{
 		values:  make([]Node, 0, capacity),
 		keys:    make([]string, 0, capacity),

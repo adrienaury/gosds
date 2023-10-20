@@ -24,7 +24,15 @@ type array struct {
 	index  int
 }
 
-func newArray() Array { //nolint:ireturn
+func NewArray() Array { //nolint:ireturn
+	return newArray()
+}
+
+func NewArrayWithCapacity(capacity int) Array { //nolint:ireturn
+	return newArrayWithCapacity(capacity)
+}
+
+func newArray() *array {
 	return &array{
 		values: []Node{},
 		parent: nil,
@@ -32,7 +40,7 @@ func newArray() Array { //nolint:ireturn
 	}
 }
 
-func newArrayWithCapacity(capacity int) Array { //nolint:ireturn
+func newArrayWithCapacity(capacity int) *array {
 	return &array{
 		values: make([]Node, 0, capacity),
 		parent: nil,
