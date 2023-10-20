@@ -23,24 +23,31 @@ type array struct {
 	values []Node
 
 	parent Node
+	index  int
 }
 
-func newArray(parent Node) Array { //nolint:ireturn
+func newArray() Array { //nolint:ireturn
 	return &array{
 		values: []Node{},
-		parent: parent,
+		parent: nil,
+		index:  0,
 	}
 }
 
-func newArrayWithCapacity(parent Node, capacity int) Array { //nolint:ireturn
+func newArrayWithCapacity(capacity int) Array { //nolint:ireturn
 	return &array{
 		values: make([]Node, 0, capacity),
-		parent: parent,
+		parent: nil,
+		index:  0,
 	}
 }
 
 func (a *array) Parent() Node { //nolint:ireturn
 	return a.parent
+}
+
+func (a *array) Index() int {
+	return a.index
 }
 
 func (a *array) Value() any {
@@ -89,26 +96,12 @@ func (a *array) ValueAtIndex(index int) any {
 	return a.values[index].Value()
 }
 
-func (a *array) SetValueAtIndex(index int, value any) {
-	switch typedValue := value.(type) {
-	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:
-		a.values[index] = newValue(a, value)
-	case Node:
-		a.values[index] = typedValue
-	default:
-		panic("not accepted")
-	}
+func (a *array) SetValueAtIndex(index int, val any) {
+	a.values = set(a.values, val, index, a)
 }
 
-func (a *array) AppendValue(value any) {
-	switch typedValue := value.(type) {
-	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:
-		a.values = append(a.values, newValue(a, value))
-	case Node:
-		a.values = append(a.values, typedValue)
-	default:
-		panic("not accepted")
-	}
+func (a *array) AppendValue(val any) {
+	a.values = set(a.values, val, len(a.values), a)
 }
 
 func (a *array) Size() int {

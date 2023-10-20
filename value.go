@@ -17,20 +17,26 @@ type Value interface {
 	// MustInt64() int64
 }
 
-func newValue(parent Node, val any) Value { //nolint:ireturn
+type value struct {
+	parent Node
+	index  int
+	value  any
+}
+
+func newValue(val any) *value {
 	return &value{
-		parent: parent,
+		parent: nil,
+		index:  0,
 		value:  val,
 	}
 }
 
-type value struct {
-	parent Node
-	value  any // can be string, float64, bool or nil interface
-}
-
 func (v *value) Parent() Node { //nolint:ireturn
 	return v.parent
+}
+
+func (v *value) Index() int {
+	return v.index
 }
 
 func (v *value) Value() any {

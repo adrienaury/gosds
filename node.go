@@ -9,15 +9,8 @@ import (
 
 type Node interface {
 	Parent() Node
+	Index() int
 	Value() any
-
-	AsObject() (Object, bool)
-	AsArray() (Array, bool)
-	AsValue() (Value, bool)
-
-	MustObject() Object
-	MustArray() Array
-	MustValue() Value
 
 	// Primitive returns a representation of the node with following types :
 	// - objects as map[string]any
@@ -25,7 +18,19 @@ type Node interface {
 	// - values as string, float64, bool or nil interface
 	Primitive() any
 
+	Castable
+
 	JSONObject
+}
+
+type Castable interface {
+	AsObject() (Object, bool)
+	AsArray() (Array, bool)
+	AsValue() (Value, bool)
+
+	MustObject() Object
+	MustArray() Array
+	MustValue() Value
 }
 
 type JSONObject interface {

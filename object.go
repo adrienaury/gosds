@@ -22,30 +22,40 @@ type Object interface {
 }
 
 type object struct {
-	inner map[string]Node
-	keys  []string
+	values  []Node
+	keys    []string
+	indexes map[string]int
 
 	parent Node
+	index  int
 }
 
-func newObject(parent Node) Object { //nolint:ireturn
+func newObject() Object { //nolint:ireturn
 	return &object{
-		inner:  map[string]Node{},
-		keys:   []string{},
-		parent: parent,
+		values:  []Node{},
+		keys:    []string{},
+		indexes: map[string]int{},
+		parent:  nil,
+		index:   0,
 	}
 }
 
-func newObjectWithCapacity(parent Node, capacity int) Object { //nolint:ireturn
+func newObjectWithCapacity(capacity int) Object { //nolint:ireturn
 	return &object{
-		inner:  make(map[string]Node, capacity),
-		keys:   make([]string, 0, capacity),
-		parent: parent,
+		values:  make([]Node, 0, capacity),
+		keys:    make([]string, 0, capacity),
+		indexes: make(map[string]int, capacity),
+		parent:  nil,
+		index:   0,
 	}
 }
 
 func (o *object) Parent() Node { //nolint:ireturn
 	return o.parent
+}
+
+func (o *object) Index() int {
+	return o.index
 }
 
 func (o *object) Value() any {
@@ -79,8 +89,8 @@ func (o *object) MustValue() Value { //nolint:ireturn
 func (o *object) Primitive() any {
 	result := make(map[string]any, len(o.keys))
 
-	for key, val := range o.inner {
-		result[key] = val.Primitive()
+	for idx, key := range o.keys {
+		result[key] = o.values[idx].Primitive()
 	}
 
 	return result
@@ -91,29 +101,29 @@ func (o *object) PrimitiveObject() map[string]any {
 }
 
 func (o *object) NodeForKey(key string) Node { //nolint:ireturn
-	return o.inner[key]
+	return o.values[o.indexes[key]]
 }
 
 func (o *object) ValueForKey(key string) (any, bool) {
-	node, has := o.inner[key]
+	idx, has := o.indexes[key]
 
-	return node.Value(), has
+	return o.values[idx].Value(), has
 }
 
-func (o *object) SetValueForKey(key string, value any) {
+func (o *object) SetValueForKey(key string, val any) {
+	index := len(o.keys)
+
+	o.indexes[key] = index
 	o.keys = append(o.keys, key)
-	switch typedValue := value.(type) {
-	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:
-		o.inner[key] = newValue(o, value)
-	case Node:
-		o.inner[key] = typedValue
-	default:
-		panic("not accepted")
-	}
+	o.values = set(o.values, val, index, o)
 }
 
 func (o *object) RemoveValueForKey(key string) {
-	delete(o.inner, key)
+	if idx, has := o.indexes[key]; has {
+		o.keys = append(o.keys[:idx], o.keys[idx+1:]...)
+		o.values = append(o.values[:idx], o.values[idx+1:]...)
+		delete(o.indexes, key)
+	}
 }
 
 func (o *object) Keys() []string {
@@ -131,7 +141,7 @@ func (o *object) MarshalEncode(output *jwriter.Writer) {
 		output.String(key)
 		output.RawByte(':')
 
-		o.NodeForKey(key).MarshalEncode(output)
+		o.values[index].MarshalEncode(output)
 	}
 
 	output.RawByte('}')

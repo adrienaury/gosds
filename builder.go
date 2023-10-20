@@ -75,7 +75,7 @@ func (b *builder) AddNull(key string) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = newValue(nil, nil)
+		b.finalized = newValue(nil)
 	case b.isObject:
 		b.current.MustObject().SetValueForKey(key, nil)
 	default:
@@ -90,7 +90,7 @@ func (b *builder) AddBool(val bool, key string) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = newValue(nil, val)
+		b.finalized = newValue(val)
 	case b.isObject:
 		b.current.MustObject().SetValueForKey(key, val)
 	default:
@@ -105,7 +105,7 @@ func (b *builder) AddFloat(val float64, key string) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = newValue(nil, val)
+		b.finalized = newValue(val)
 	case b.isObject:
 		b.current.MustObject().SetValueForKey(key, val)
 	default:
@@ -120,7 +120,7 @@ func (b *builder) AddInt(val int64, key string) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = newValue(nil, val)
+		b.finalized = newValue(val)
 	case b.isObject:
 		b.current.MustObject().SetValueForKey(key, val)
 	default:
@@ -135,7 +135,7 @@ func (b *builder) AddNumber(num json.Number, key string) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = newValue(nil, num)
+		b.finalized = newValue(num)
 	case b.isObject:
 		b.current.MustObject().SetValueForKey(key, num)
 	default:
@@ -150,7 +150,7 @@ func (b *builder) AddString(val string, key string) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = newValue(nil, val)
+		b.finalized = newValue(val)
 	case b.isObject:
 		b.current.MustObject().SetValueForKey(key, val)
 	default:
@@ -183,13 +183,13 @@ func (b *builder) StartArray(key string) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.current = newArray(nil)
+		b.current = newArray()
 	case b.isObject:
-		array := newArray(b.current)
+		array := newArray()
 		b.current.MustObject().SetValueForKey(key, array)
 		b.current = array
 	default:
-		array := newArray(b.current)
+		array := newArray()
 		b.current.MustArray().AppendValue(array)
 		b.current = array
 	}
@@ -204,13 +204,13 @@ func (b *builder) StartObject(key string) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.current = newObject(nil)
+		b.current = newObject()
 	case b.isObject:
-		object := newObject(b.current)
+		object := newObject()
 		b.current.MustObject().SetValueForKey(key, object)
 		b.current = object
 	default:
-		object := newObject(b.current)
+		object := newObject()
 		b.current.MustArray().AppendValue(object)
 		b.current = object
 	}
@@ -229,7 +229,7 @@ func (b *builder) OnNull() error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = newValue(nil, nil)
+		b.finalized = newValue(nil)
 	case b.isObject && b.key != nil:
 		b.current.MustObject().SetValueForKey(*b.key, nil)
 		b.key = nil
@@ -247,7 +247,7 @@ func (b *builder) OnBool(val bool) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = newValue(nil, val)
+		b.finalized = newValue(val)
 	case b.isObject && b.key != nil:
 		b.current.MustObject().SetValueForKey(*b.key, val)
 		b.key = nil
@@ -265,7 +265,7 @@ func (b *builder) OnString(val string) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = newValue(nil, val)
+		b.finalized = newValue(val)
 	case b.isObject && b.key != nil:
 		b.current.MustObject().SetValueForKey(*b.key, val)
 		b.key = nil
@@ -283,7 +283,7 @@ func (b *builder) OnInt64(_ int64, num json.Number) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = newValue(nil, num)
+		b.finalized = newValue(num)
 	case b.isObject && b.key != nil:
 		b.current.MustObject().SetValueForKey(*b.key, num)
 		b.key = nil
@@ -301,7 +301,7 @@ func (b *builder) OnFloat64(_ float64, num json.Number) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = newValue(nil, num)
+		b.finalized = newValue(num)
 	case b.isObject && b.key != nil:
 		b.current.MustObject().SetValueForKey(*b.key, num)
 		b.key = nil
@@ -319,16 +319,16 @@ func (b *builder) OnObjectBegin(capacity int) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.current = newObjectWithCapacity(nil, capacity)
+		b.current = newObjectWithCapacity(capacity)
 	case b.isObject && b.key != nil:
-		object := newObjectWithCapacity(b.current, capacity)
+		object := newObjectWithCapacity(capacity)
 		b.current.MustObject().SetValueForKey(*b.key, object)
 		b.current = object
 		b.key = nil
 	case b.isObject && b.key == nil:
 		return ErrMissingKey
 	default:
-		object := newObjectWithCapacity(b.current, capacity)
+		object := newObjectWithCapacity(capacity)
 		b.current.MustArray().AppendValue(object)
 		b.current = object
 	}
@@ -382,16 +382,16 @@ func (b *builder) OnArrayBegin(capacity int) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.current = newArrayWithCapacity(nil, capacity)
+		b.current = newArrayWithCapacity(capacity)
 	case b.isObject && b.key != nil:
-		array := newArrayWithCapacity(b.current, capacity)
+		array := newArrayWithCapacity(capacity)
 		b.current.MustObject().SetValueForKey(*b.key, array)
 		b.current = array
 		b.key = nil
 	case b.isObject && b.key == nil:
 		return ErrMissingKey
 	default:
-		array := newArrayWithCapacity(b.current, capacity)
+		array := newArrayWithCapacity(capacity)
 		b.current.MustArray().AppendValue(array)
 		b.current = array
 	}
