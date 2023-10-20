@@ -131,7 +131,7 @@ func (o *object) SetValueForKey(key string, val any) {
 
 	o.indexes[key] = index
 	o.keys = append(o.keys, key)
-	o.values = set(o.values, val, index, o)
+	o.values = add(o.values, val, o)
 }
 
 func (o *object) RemoveValueForKey(key string) {
