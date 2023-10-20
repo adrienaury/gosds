@@ -19,32 +19,41 @@ func set(values []Node, val any, index int, parent Node) []Node {
 		value := newValue(val)
 		value.parent = parent
 		value.index = index
-		return append(values, value)
+		values[index] = value
 	case *object:
 		typedValue.parent = parent
 		typedValue.index = index
-		return append(values, typedValue)
+		values[index] = typedValue
 	case *array:
 		typedValue.parent = parent
 		typedValue.index = index
-		return append(values, typedValue)
+		values[index] = typedValue
 	case *value:
 		typedValue.parent = parent
 		typedValue.index = index
-		return append(values, typedValue)
+		values[index] = typedValue
 	case object:
 		typedValue.parent = parent
 		typedValue.index = index
-		return append(values, &typedValue)
+		values[index] = &typedValue
 	case array:
 		typedValue.parent = parent
 		typedValue.index = index
-		return append(values, &typedValue)
+		values[index] = &typedValue
 	case value:
 		typedValue.parent = parent
 		typedValue.index = index
-		return append(values, &typedValue)
+		values[index] = &typedValue
 	default:
 		panic("not accepted")
 	}
+
+	return values
+}
+
+//nolint:wsl,nlreturn
+func add(values []Node, val any, parent Node) []Node {
+	index := len(values)
+	values = append(values, nil)
+	return set(values, val, index, parent)
 }

@@ -115,7 +115,7 @@ func (a *array) RemoveValueAtIndex(index int) {
 }
 
 func (a *array) AppendValue(val any) {
-	a.values = set(a.values, val, len(a.values), a)
+	a.values = add(a.values, val, a)
 }
 
 func (a *array) Size() int {
