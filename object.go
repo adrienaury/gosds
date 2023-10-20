@@ -86,6 +86,10 @@ func (o *object) AsValue() (Value, bool) { //nolint:ireturn
 	return nil, false
 }
 
+func (o *object) AsIndexed() (Indexed, bool) { //nolint:ireturn
+	return o, true
+}
+
 func (o *object) MustObject() Object { //nolint:ireturn
 	return o
 }
@@ -96,6 +100,10 @@ func (o *object) MustArray() Array { //nolint:ireturn
 
 func (o *object) MustValue() Value { //nolint:ireturn
 	return nil
+}
+
+func (o *object) MustIndexed() Indexed { //nolint:ireturn
+	return o
 }
 
 func (o *object) Primitive() any {

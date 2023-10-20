@@ -27,10 +27,12 @@ type Castable interface {
 	AsObject() (Object, bool)
 	AsArray() (Array, bool)
 	AsValue() (Value, bool)
+	AsIndexed() (Indexed, bool)
 
 	MustObject() Object
 	MustArray() Array
 	MustValue() Value
+	MustIndexed() Indexed
 }
 
 type JSONObject interface {
