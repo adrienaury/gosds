@@ -12,8 +12,6 @@ type Object interface {
 	Indexed
 }
 
-type ObjectAccess interface{}
-
 type object struct {
 	values  []Node
 	keys    []string
@@ -142,7 +140,10 @@ func (o *object) PrimitiveArray() []any {
 func (o *object) NodeForKey(key string) Node { //nolint:ireturn
 	idx, has := o.indexes[key]
 	if !has {
-		return nil
+		placeholder := newPlaceholder()
+		o.SetValueForKey(key, placeholder)
+
+		return placeholder
 	}
 
 	return o.values[idx]
@@ -154,6 +155,9 @@ func (o *object) NodeAtIndex(index int) Node { //nolint:ireturn
 
 func (o *object) ValueForKey(key string) (any, bool) {
 	idx, has := o.indexes[key]
+	if !has {
+		return nil, false
+	}
 
 	return o.values[idx].Get(), has
 }
@@ -207,8 +211,16 @@ func (o *object) Keys() []string {
 func (o *object) MarshalEncode(output *jwriter.Writer) {
 	output.RawByte('{')
 
+	count := 0
+
 	for index, key := range o.keys {
-		if index > 0 {
+		if _, ok := o.values[index].(*placeholder); ok {
+			count++
+
+			continue
+		}
+
+		if index > count {
 			output.RawByte(',')
 		}
 

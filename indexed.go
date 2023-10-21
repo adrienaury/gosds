@@ -28,6 +28,10 @@ func set(values []Node, val any, index int, parent Node) []Node {
 		typedValue.parent = parent
 		typedValue.index = index
 		values[index] = typedValue
+	case *placeholder:
+		typedValue.parent = parent
+		typedValue.index = index
+		values[index] = typedValue
 	case object:
 		typedValue.parent = parent
 		typedValue.index = index
@@ -37,6 +41,10 @@ func set(values []Node, val any, index int, parent Node) []Node {
 		typedValue.index = index
 		values[index] = &typedValue
 	case value:
+		typedValue.parent = parent
+		typedValue.index = index
+		values[index] = &typedValue
+	case placeholder:
 		typedValue.parent = parent
 		typedValue.index = index
 		values[index] = &typedValue
