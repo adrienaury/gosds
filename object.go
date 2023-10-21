@@ -52,10 +52,6 @@ func newObjectWithCapacity(capacity int) *object {
 }
 
 func (o *object) Parent() Node { //nolint:ireturn
-	if o.parent == nil {
-		return newRoot(o)
-	}
-
 	return o.parent
 }
 

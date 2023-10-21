@@ -45,10 +45,6 @@ func newArrayWithCapacity(capacity int) *array {
 }
 
 func (a *array) Parent() Node { //nolint:ireturn
-	if a.parent == nil {
-		return newRoot(a)
-	}
-
 	return a.parent
 }
 

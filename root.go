@@ -15,9 +15,10 @@ type root struct {
 }
 
 func newRoot(val Node) *root {
-	return &root{
-		value: val,
-	}
+	root := &root{} //nolint:exhaustruct
+	root.Set(val)
+
+	return root
 }
 
 func (r *root) Get() any {
@@ -26,6 +27,11 @@ func (r *root) Get() any {
 
 func (r *root) Set(val any) {
 	switch typedValue := val.(type) {
+	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:
+		value := newValue(val)
+		value.parent = r
+		value.index = 0
+		r.value = value
 	case *object:
 		typedValue.parent = r
 		typedValue.index = 0

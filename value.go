@@ -33,10 +33,6 @@ func newValue(val any) *value {
 }
 
 func (v *value) Parent() Node { //nolint:ireturn
-	if v.parent == nil {
-		return newRoot(v)
-	}
-
 	return v.parent
 }
 

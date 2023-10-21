@@ -17,7 +17,7 @@ type Builder interface {
 
 	EndObjectOrArray() error
 
-	Finalize() Node
+	Finalize() Root
 }
 
 type SonicBuilder interface { //nolint:interfacebloat
@@ -32,7 +32,7 @@ type SonicBuilder interface { //nolint:interfacebloat
 	OnArrayBegin(capacity int) error
 	OnArrayEnd() error
 
-	Finalize() Node
+	Finalize() Root
 }
 
 var (
@@ -220,8 +220,8 @@ func (b *builder) StartObject(key string) error {
 	return nil
 }
 
-func (b *builder) Finalize() Node { //nolint:ireturn
-	return b.finalized
+func (b *builder) Finalize() Root { //nolint:ireturn
+	return newRoot(b.finalized)
 }
 
 func (b *builder) OnNull() error {
