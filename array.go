@@ -8,13 +8,9 @@ import (
 
 type Array interface {
 	Node
-
 	Indexed
 
 	AppendValue(value any)
-
-	// PrimitiveArray returns a representation of the array as []any
-	PrimitiveArray() []any
 }
 
 type array struct {

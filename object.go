@@ -8,19 +8,8 @@ import (
 
 type Object interface {
 	Node
-
-	NodeForKey(key string) Node
-
-	ValueForKey(key string) (any, bool)
-	SetValueForKey(key string, value any)
-	RemoveValueForKey(key string)
-
+	Keyed
 	Indexed
-
-	Keys() []string
-
-	// PrimitiveObject returns a representation of the object as map[string]any
-	PrimitiveObject() map[string]any
 }
 
 type ObjectAccess interface{}
@@ -118,6 +107,16 @@ func (o *object) Primitive() any {
 
 func (o *object) PrimitiveObject() map[string]any {
 	return o.Primitive().(map[string]any) //nolint:forcetypeassert
+}
+
+func (o *object) PrimitiveArray() []any {
+	result := make([]any, len(o.values))
+
+	for index, val := range o.values {
+		result[index] = val.Primitive()
+	}
+
+	return result
 }
 
 func (o *object) NodeForKey(key string) Node { //nolint:ireturn
