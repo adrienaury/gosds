@@ -140,7 +140,12 @@ func (o *object) PrimitiveArray() []any {
 }
 
 func (o *object) NodeForKey(key string) Node { //nolint:ireturn
-	return o.values[o.indexes[key]]
+	idx, has := o.indexes[key]
+	if !has {
+		return nil
+	}
+
+	return o.values[idx]
 }
 
 func (o *object) NodeAtIndex(index int) Node { //nolint:ireturn
