@@ -15,12 +15,12 @@ type Node interface {
 	// Primitive returns a representation of the node with following types :
 	// - objects as map[string]any
 	// - arrays as []any
-	// - values as string, float64, bool or nil interface
+	// - values as any
 	Primitive() any
 
 	Castable
 
-	JSONObject
+	JSONMarshaller
 }
 
 type Castable interface {
@@ -35,7 +35,7 @@ type Castable interface {
 	MustIndexed() Indexed
 }
 
-type JSONObject interface {
+type JSONMarshaller interface {
 	MarshalEncode(*jwriter.Writer)
 	MarshalWrite(io.Writer) error
 }
