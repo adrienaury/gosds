@@ -8,19 +8,15 @@ import (
 )
 
 type Node interface {
+	Parented
+	Container
+	Castable
+	JSONMarshaller
+}
+
+type Parented interface {
 	Parent() Node
 	Index() int
-	Value() any
-
-	// Primitive returns a representation of the node with following types :
-	// - objects as map[string]any
-	// - arrays as []any
-	// - values as any
-	Primitive() any
-
-	Castable
-
-	JSONMarshaller
 }
 
 type Castable interface {

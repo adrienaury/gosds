@@ -52,6 +52,10 @@ func newObjectWithCapacity(capacity int) *object {
 }
 
 func (o *object) Parent() Node { //nolint:ireturn
+	if o.parent == nil {
+		return newRoot(o)
+	}
+
 	return o.parent
 }
 
@@ -59,8 +63,12 @@ func (o *object) Index() int {
 	return o.index
 }
 
-func (o *object) Value() any {
+func (o *object) Get() any {
 	return o
+}
+
+func (o *object) Set(any) {
+	panic("not implemented")
 }
 
 func (o *object) AsObject() (Object, bool) { //nolint:ireturn
@@ -130,7 +138,7 @@ func (o *object) NodeAtIndex(index int) Node { //nolint:ireturn
 func (o *object) ValueForKey(key string) (any, bool) {
 	idx, has := o.indexes[key]
 
-	return o.values[idx].Value(), has
+	return o.values[idx].Get(), has
 }
 
 func (o *object) SetValueForKey(key string, val any) {
@@ -154,7 +162,7 @@ func (o *object) ValueAtIndex(index int) any {
 		return nil
 	}
 
-	return o.values[index].Value()
+	return o.values[index].Get()
 }
 
 func (o *object) SetValueAtIndex(index int, val any) {

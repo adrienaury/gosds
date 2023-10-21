@@ -8,10 +8,7 @@ import (
 
 type Value interface {
 	Node
-
-	Value() any
-
-	Set(val any)
+	Container
 
 	// Int64() (int64, bool)
 	// MustInt64() int64
@@ -36,6 +33,10 @@ func newValue(val any) *value {
 }
 
 func (v *value) Parent() Node { //nolint:ireturn
+	if v.parent == nil {
+		return newRoot(v)
+	}
+
 	return v.parent
 }
 
@@ -43,7 +44,7 @@ func (v *value) Index() int {
 	return v.index
 }
 
-func (v *value) Value() any {
+func (v *value) Get() any {
 	return v.value
 }
 

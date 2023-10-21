@@ -45,6 +45,10 @@ func newArrayWithCapacity(capacity int) *array {
 }
 
 func (a *array) Parent() Node { //nolint:ireturn
+	if a.parent == nil {
+		return newRoot(a)
+	}
+
 	return a.parent
 }
 
@@ -52,8 +56,12 @@ func (a *array) Index() int {
 	return a.index
 }
 
-func (a *array) Value() any {
+func (a *array) Get() any {
 	return a
+}
+
+func (a *array) Set(any) {
+	panic("not implemented")
 }
 
 func (a *array) AsObject() (Object, bool) { //nolint:ireturn
@@ -103,7 +111,7 @@ func (a *array) PrimitiveArray() []any {
 }
 
 func (a *array) ValueAtIndex(index int) any {
-	return a.values[index].Value()
+	return a.values[index].Get()
 }
 
 func (a *array) NodeAtIndex(index int) Node { //nolint:ireturn
