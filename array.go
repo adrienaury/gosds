@@ -18,6 +18,8 @@ type array struct {
 
 	parent Node
 	index  int
+
+	root Root
 }
 
 func NewArray() Array { //nolint:ireturn
@@ -33,6 +35,7 @@ func newArray() *array {
 		values: []Node{},
 		parent: nil,
 		index:  0,
+		root:   nil,
 	}
 }
 
@@ -41,6 +44,7 @@ func newArrayWithCapacity(capacity int) *array {
 		values: make([]Node, 0, capacity),
 		parent: nil,
 		index:  0,
+		root:   nil,
 	}
 }
 
@@ -59,8 +63,8 @@ func (a *array) Get() any {
 func (a *array) Set(val any) {
 	if indexedParent, ok := a.Parent().AsIndexed(); ok {
 		indexedParent.SetValueAtIndex(a.Index(), val)
-	} else if containerParent, ok := a.Parent().AsContainer(); ok {
-		containerParent.Set(val)
+	} else if root, ok := a.AsRoot(); ok {
+		root.Set(val)
 	}
 }
 
@@ -80,8 +84,8 @@ func (a *array) AsIndexed() (Indexed, bool) { //nolint:ireturn
 	return a, true
 }
 
-func (a *array) AsContainer() (Container, bool) { //nolint:ireturn
-	return a, true
+func (a *array) AsRoot() (Root, bool) { //nolint:ireturn
+	return a.root, a.root != nil
 }
 
 func (a *array) MustObject() Object { //nolint:ireturn
@@ -100,8 +104,8 @@ func (a *array) MustIndexed() Indexed { //nolint:ireturn
 	return a
 }
 
-func (a *array) MustContainer() Container { //nolint:ireturn
-	return a
+func (a *array) MustRoot() Root { //nolint:ireturn
+	return a.root
 }
 
 func (a *array) Primitive() any {

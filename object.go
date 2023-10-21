@@ -21,6 +21,8 @@ type object struct {
 
 	parent Node
 	index  int
+
+	root Root
 }
 
 func NewObject() Object { //nolint:ireturn
@@ -38,6 +40,7 @@ func newObject() *object {
 		indexes: map[string]int{},
 		parent:  nil,
 		index:   0,
+		root:    nil,
 	}
 }
 
@@ -48,6 +51,7 @@ func newObjectWithCapacity(capacity int) *object {
 		indexes: make(map[string]int, capacity),
 		parent:  nil,
 		index:   0,
+		root:    nil,
 	}
 }
 
@@ -66,8 +70,8 @@ func (o *object) Get() any {
 func (o *object) Set(val any) {
 	if indexedParent, ok := o.Parent().AsIndexed(); ok {
 		indexedParent.SetValueAtIndex(o.Index(), val)
-	} else if containerParent, ok := o.Parent().AsContainer(); ok {
-		containerParent.Set(val)
+	} else if root, ok := o.AsRoot(); ok {
+		root.Set(val)
 	}
 }
 
@@ -87,8 +91,8 @@ func (o *object) AsIndexed() (Indexed, bool) { //nolint:ireturn
 	return o, true
 }
 
-func (o *object) AsContainer() (Container, bool) { //nolint:ireturn
-	return o, true
+func (o *object) AsRoot() (Root, bool) { //nolint:ireturn
+	return o.root, o.root != nil
 }
 
 func (o *object) MustObject() Object { //nolint:ireturn
@@ -107,8 +111,8 @@ func (o *object) MustIndexed() Indexed { //nolint:ireturn
 	return o
 }
 
-func (o *object) MustContainer() Container { //nolint:ireturn
-	return o
+func (o *object) MustRoot() Root { //nolint:ireturn
+	return o.root
 }
 
 func (o *object) Primitive() any {

@@ -18,6 +18,7 @@ type value struct {
 	parent Node
 	index  int
 	value  any
+	root   Root
 }
 
 func NewValue(val any) Value { //nolint:ireturn
@@ -29,6 +30,7 @@ func newValue(val any) *value {
 		parent: nil,
 		index:  0,
 		value:  val,
+		root:   nil,
 	}
 }
 
@@ -60,8 +62,8 @@ func (v *value) AsIndexed() (Indexed, bool) { //nolint:ireturn
 	return nil, false
 }
 
-func (v *value) AsContainer() (Container, bool) { //nolint:ireturn
-	return v, true
+func (v *value) AsRoot() (Root, bool) { //nolint:ireturn
+	return v.root, v.root != nil
 }
 
 func (v *value) MustObject() Object { //nolint:ireturn
@@ -80,8 +82,8 @@ func (v *value) MustIndexed() Indexed { //nolint:ireturn
 	return nil
 }
 
-func (v *value) MustContainer() Container { //nolint:ireturn
-	return v
+func (v *value) MustRoot() Root { //nolint:ireturn
+	return v.root
 }
 
 func (v *value) Primitive() any {
@@ -95,8 +97,8 @@ func (v *value) Set(val any) {
 	default:
 		if indexedParent, ok := v.Parent().AsIndexed(); ok {
 			indexedParent.SetValueAtIndex(v.Index(), val)
-		} else if containerParent, ok := v.Parent().AsContainer(); ok {
-			containerParent.Set(val)
+		} else if root, ok := v.AsRoot(); ok {
+			root.Set(val)
 		}
 	}
 }
