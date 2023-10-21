@@ -9,6 +9,7 @@ type Indexed interface {
 	PrimitiveArray() []any
 }
 
+//nolint:funlen,cyclop
 func set(values []Node, val any, index int, parent Node) []Node {
 	switch typedValue := val.(type) {
 	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:

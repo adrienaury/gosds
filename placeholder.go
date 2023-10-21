@@ -28,19 +28,19 @@ func (p *placeholder) Set(val any) {
 	}
 }
 
-func (p *placeholder) Parent() Node                  { return p.parent }
+func (p *placeholder) Parent() Node                  { return p.parent } //nolint:ireturn
 func (p *placeholder) Index() int                    { return p.index }
 func (p *placeholder) Get() any                      { return p }
 func (p *placeholder) Primitive() any                { return nil }
-func (p *placeholder) AsObject() (Object, bool)      { return nil, false }
-func (p *placeholder) AsArray() (Array, bool)        { return nil, false }
-func (p *placeholder) AsValue() (Value, bool)        { return nil, false }
-func (p *placeholder) AsIndexed() (Indexed, bool)    { return nil, false }
-func (p *placeholder) AsRoot() (Root, bool)          { return p.root, p.root != nil }
-func (p *placeholder) MustObject() Object            { return nil }
-func (p *placeholder) MustArray() Array              { return nil }
-func (p *placeholder) MustValue() Value              { return nil }
-func (p *placeholder) MustIndexed() Indexed          { return nil }
-func (p *placeholder) MustRoot() Root                { return p.root }
+func (p *placeholder) AsObject() (Object, bool)      { return nil, false }            //nolint:ireturn
+func (p *placeholder) AsArray() (Array, bool)        { return nil, false }            //nolint:ireturn
+func (p *placeholder) AsValue() (Value, bool)        { return nil, false }            //nolint:ireturn
+func (p *placeholder) AsIndexed() (Indexed, bool)    { return nil, false }            //nolint:ireturn
+func (p *placeholder) AsRoot() (Root, bool)          { return p.root, p.root != nil } //nolint:ireturn
+func (p *placeholder) MustObject() Object            { return nil }                   //nolint:ireturn
+func (p *placeholder) MustArray() Array              { return nil }                   //nolint:ireturn
+func (p *placeholder) MustValue() Value              { return nil }                   //nolint:ireturn
+func (p *placeholder) MustIndexed() Indexed          { return nil }                   //nolint:ireturn
+func (p *placeholder) MustRoot() Root                { return p.root }                //nolint:ireturn
 func (p *placeholder) MarshalEncode(*jwriter.Writer) { panic("") }
 func (p *placeholder) MarshalWrite(io.Writer) error  { panic("") }
