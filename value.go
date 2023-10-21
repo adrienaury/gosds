@@ -60,6 +60,10 @@ func (v *value) AsIndexed() (Indexed, bool) { //nolint:ireturn
 	return nil, false
 }
 
+func (v *value) AsContainer() (Container, bool) { //nolint:ireturn
+	return v, true
+}
+
 func (v *value) MustObject() Object { //nolint:ireturn
 	return nil
 }
@@ -76,6 +80,10 @@ func (v *value) MustIndexed() Indexed { //nolint:ireturn
 	return nil
 }
 
+func (v *value) MustContainer() Container { //nolint:ireturn
+	return v
+}
+
 func (v *value) Primitive() any {
 	return v.value
 }
@@ -85,7 +93,11 @@ func (v *value) Set(val any) {
 	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:
 		v.value = val
 	default:
-		panic("not accepted")
+		if indexedParent, ok := v.Parent().AsIndexed(); ok {
+			indexedParent.SetValueAtIndex(v.Index(), val)
+		} else if containerParent, ok := v.Parent().AsContainer(); ok {
+			containerParent.Set(val)
+		}
 	}
 }
 

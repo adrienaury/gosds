@@ -24,11 +24,13 @@ type Castable interface {
 	AsArray() (Array, bool)
 	AsValue() (Value, bool)
 	AsIndexed() (Indexed, bool)
+	AsContainer() (Container, bool)
 
 	MustObject() Object
 	MustArray() Array
 	MustValue() Value
 	MustIndexed() Indexed
+	MustContainer() Container
 }
 
 type JSONMarshaller interface {

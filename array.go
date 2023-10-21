@@ -56,8 +56,12 @@ func (a *array) Get() any {
 	return a
 }
 
-func (a *array) Set(any) {
-	panic("not implemented")
+func (a *array) Set(val any) {
+	if indexedParent, ok := a.Parent().AsIndexed(); ok {
+		indexedParent.SetValueAtIndex(a.Index(), val)
+	} else if containerParent, ok := a.Parent().AsContainer(); ok {
+		containerParent.Set(val)
+	}
 }
 
 func (a *array) AsObject() (Object, bool) { //nolint:ireturn
@@ -76,6 +80,10 @@ func (a *array) AsIndexed() (Indexed, bool) { //nolint:ireturn
 	return a, true
 }
 
+func (a *array) AsContainer() (Container, bool) { //nolint:ireturn
+	return a, true
+}
+
 func (a *array) MustObject() Object { //nolint:ireturn
 	return nil
 }
@@ -89,6 +97,10 @@ func (a *array) MustValue() Value { //nolint:ireturn
 }
 
 func (a *array) MustIndexed() Indexed { //nolint:ireturn
+	return a
+}
+
+func (a *array) MustContainer() Container { //nolint:ireturn
 	return a
 }
 

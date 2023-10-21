@@ -63,8 +63,12 @@ func (o *object) Get() any {
 	return o
 }
 
-func (o *object) Set(any) {
-	panic("not implemented")
+func (o *object) Set(val any) {
+	if indexedParent, ok := o.Parent().AsIndexed(); ok {
+		indexedParent.SetValueAtIndex(o.Index(), val)
+	} else if containerParent, ok := o.Parent().AsContainer(); ok {
+		containerParent.Set(val)
+	}
 }
 
 func (o *object) AsObject() (Object, bool) { //nolint:ireturn
@@ -83,6 +87,10 @@ func (o *object) AsIndexed() (Indexed, bool) { //nolint:ireturn
 	return o, true
 }
 
+func (o *object) AsContainer() (Container, bool) { //nolint:ireturn
+	return o, true
+}
+
 func (o *object) MustObject() Object { //nolint:ireturn
 	return o
 }
@@ -96,6 +104,10 @@ func (o *object) MustValue() Value { //nolint:ireturn
 }
 
 func (o *object) MustIndexed() Indexed { //nolint:ireturn
+	return o
+}
+
+func (o *object) MustContainer() Container { //nolint:ireturn
 	return o
 }
 

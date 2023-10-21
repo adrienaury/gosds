@@ -62,17 +62,19 @@ func (r *root) Set(val any) {
 }
 
 func (r *root) Primitive() any {
-	return r.value
+	return r.value.Primitive()
 }
 
-func (r *root) AsObject() (Object, bool)   { return nil, false } //nolint:ireturn
-func (r *root) AsArray() (Array, bool)     { return nil, false } //nolint:ireturn
-func (r *root) AsValue() (Value, bool)     { return nil, false } //nolint:ireturn
-func (r *root) AsIndexed() (Indexed, bool) { return nil, false } //nolint:ireturn
-func (r *root) MustObject() Object         { return nil }        //nolint:ireturn
-func (r *root) MustArray() Array           { return nil }        //nolint:ireturn
-func (r *root) MustValue() Value           { return nil }        //nolint:ireturn
-func (r *root) MustIndexed() Indexed       { return nil }        //nolint:ireturn
+func (r *root) AsObject() (Object, bool)       { return r.value.AsObject() }    //nolint:ireturn
+func (r *root) AsArray() (Array, bool)         { return r.value.AsArray() }     //nolint:ireturn
+func (r *root) AsValue() (Value, bool)         { return r.value.AsValue() }     //nolint:ireturn
+func (r *root) AsIndexed() (Indexed, bool)     { return r.value.AsIndexed() }   //nolint:ireturn
+func (r *root) AsContainer() (Container, bool) { return r, true }               //nolint:ireturn
+func (r *root) MustObject() Object             { return r.value.MustObject() }  //nolint:ireturn
+func (r *root) MustArray() Array               { return r.value.MustArray() }   //nolint:ireturn
+func (r *root) MustValue() Value               { return r.value.MustValue() }   //nolint:ireturn
+func (r *root) MustIndexed() Indexed           { return r.value.MustIndexed() } //nolint:ireturn
+func (r *root) MustContainer() Container       { return r }                     //nolint:ireturn
 
 func (r *root) Parent() Node { return nil } //nolint:ireturn
 func (r *root) Index() int   { return 0 }
