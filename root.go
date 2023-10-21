@@ -75,6 +75,7 @@ func (r *root) Primitive() any {
 	return r.value.Primitive()
 }
 
+func (r *root) Exist() bool                { return r.value.Exist() }
 func (r *root) AsObject() (Object, bool)   { return r.value.AsObject() }    //nolint:ireturn
 func (r *root) AsArray() (Array, bool)     { return r.value.AsArray() }     //nolint:ireturn
 func (r *root) AsValue() (Value, bool)     { return r.value.AsValue() }     //nolint:ireturn

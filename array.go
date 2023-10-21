@@ -122,6 +122,10 @@ func (a *array) PrimitiveArray() []any {
 	return a.Primitive().([]any) //nolint:forcetypeassert
 }
 
+func (a *array) Exist() bool {
+	return true
+}
+
 func (a *array) ValueAtIndex(index int) any {
 	return a.values[index].Get()
 }

@@ -32,6 +32,7 @@ func (p *placeholder) Parent() Node                  { return p.parent } //nolin
 func (p *placeholder) Index() int                    { return p.index }
 func (p *placeholder) Get() any                      { return p }
 func (p *placeholder) Primitive() any                { return nil }
+func (p *placeholder) Exist() bool                   { return false }
 func (p *placeholder) AsObject() (Object, bool)      { return nil, false }            //nolint:ireturn
 func (p *placeholder) AsArray() (Array, bool)        { return nil, false }            //nolint:ireturn
 func (p *placeholder) AsValue() (Value, bool)        { return nil, false }            //nolint:ireturn

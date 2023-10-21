@@ -137,6 +137,10 @@ func (o *object) PrimitiveArray() []any {
 	return result
 }
 
+func (o *object) Exist() bool {
+	return true
+}
+
 func (o *object) NodeForKey(key string) Node { //nolint:ireturn
 	idx, has := o.indexes[key]
 	if !has {
