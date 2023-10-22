@@ -176,9 +176,7 @@ func (o *object) SetValueForKey(key string, val any) {
 
 func (o *object) RemoveValueForKey(key string) {
 	if idx, has := o.indexes[key]; has {
-		o.keys = append(o.keys[:idx], o.keys[idx+1:]...)
-		o.values = append(o.values[:idx], o.values[idx+1:]...)
-		delete(o.indexes, key)
+		o.RemoveValueAtIndex(idx)
 	}
 }
 
@@ -202,6 +200,12 @@ func (o *object) RemoveValueAtIndex(index int) {
 	delete(o.indexes, o.keys[index])
 	o.keys = append(o.keys[:index], o.keys[index+1:]...)
 	o.values = append(o.values[:index], o.values[index+1:]...)
+
+	for k, v := range o.indexes {
+		if v > index {
+			o.indexes[k] = v - 1
+		}
+	}
 }
 
 func (o *object) Size() int {
