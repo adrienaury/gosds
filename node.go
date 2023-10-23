@@ -23,6 +23,10 @@ type Container interface {
 type Castable interface {
 	IsKeyed() bool
 	IsIndexed() bool
+	IsArray() bool
+	IsObject() bool
 	AsKeyed() Keyed
 	AsIndexed() Indexed
+	AsArray() Array
+	AsObject() Object
 }
