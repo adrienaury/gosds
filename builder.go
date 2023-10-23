@@ -39,7 +39,7 @@ func (b *Builder) AddValue(val any) error {
 	case b.finalized != nil:
 		return ErrFinalized
 	case b.current == nil:
-		b.finalized = accept(val)
+		b.finalized = newValue(val)
 	case b.isObject && b.key != nil:
 		b.current.AsObject().SetValueForKey(*b.key, val)
 		b.key = nil
@@ -114,8 +114,6 @@ func (b *Builder) EndObjectOrArray() error {
 		return ErrFinalized
 	case b.current == nil:
 		return ErrNoOpenedArrayOrObject
-	case b.isObject:
-		return ErrNoOpenedArrayOrObject
 	default:
 		if b.current.Parent() == nil {
 			b.finalized = b.current
@@ -128,6 +126,6 @@ func (b *Builder) EndObjectOrArray() error {
 	return nil
 }
 
-func (b *Builder) Build() Node { //nolint:ireturn
-	return b.finalized
+func (b *Builder) Build() Root { //nolint:ireturn
+	return newRoot(b.finalized)
 }

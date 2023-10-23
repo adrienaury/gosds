@@ -1,5 +1,12 @@
 package gosds
 
+import (
+	"fmt"
+	"io"
+
+	"github.com/mailru/easyjson/jwriter"
+)
+
 type Marshaler interface {
 	MarshalEncode(Encoder)
 	MarshalWrite(Writer) error
@@ -10,6 +17,7 @@ type Encoder interface {
 	EncoderString
 	EncoderInt
 	EncoderUint
+	EncoderFloat
 	EncoderBool
 }
 
@@ -33,9 +41,9 @@ type EncoderInt interface {
 type EncoderUint interface {
 	Uint(n uint)
 	Uint64(n uint64)
-	Uint32Str(n uint32)
-	Uint16Str(n uint16)
-	Uint8Str(n uint8)
+	Uint32(n uint32)
+	Uint16(n uint16)
+	Uint8(n uint8)
 }
 
 type EncoderFloat interface {
@@ -45,4 +53,19 @@ type EncoderFloat interface {
 
 type EncoderBool interface {
 	Bool(v bool)
+}
+
+func MarshalWrite(node Node, output io.Writer) error {
+	writer := &jwriter.Writer{NoEscapeHTML: true} //nolint:exhaustruct
+	node.MarshalEncode(writer)
+
+	if writer.Error != nil {
+		return fmt.Errorf("%w", writer.Error)
+	}
+
+	if _, err := writer.DumpTo(output); err != nil {
+		return fmt.Errorf("%w", err)
+	}
+
+	return nil
 }

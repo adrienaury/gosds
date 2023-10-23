@@ -10,6 +10,8 @@ type Node interface {
 type Parented interface {
 	Root() Node
 	Parent() Node
+	Index() int
+	Key() string
 }
 
 type Container interface {
@@ -25,8 +27,10 @@ type Castable interface {
 	IsIndexed() bool
 	IsArray() bool
 	IsObject() bool
+	IsRoot() bool
 	AsKeyed() Keyed
 	AsIndexed() Indexed
 	AsArray() Array
 	AsObject() Object
+	AsRoot() Root
 }
