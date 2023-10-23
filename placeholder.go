@@ -42,7 +42,7 @@ func (p *placeholder) Remove() {
 	}
 }
 
-func (p *placeholder) Root() Node { //nolint:ireturn
+func (p *placeholder) Root() Root { //nolint:ireturn
 	var result Node = p
 
 	for result.Parent() != nil {

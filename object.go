@@ -122,7 +122,7 @@ func (o *object) PrimitiveArray() []any {
 	return result
 }
 
-func (o *object) Root() Node { //nolint:ireturn
+func (o *object) Root() Root { //nolint:ireturn
 	var result Node = o
 
 	for result.Parent() != nil {

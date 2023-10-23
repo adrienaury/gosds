@@ -25,7 +25,7 @@ func newValue(val any) *value {
 	}
 }
 
-func (v *value) Root() Node { //nolint:ireturn
+func (v *value) Root() Root { //nolint:ireturn
 	var result Node = v
 
 	for result.Parent() != nil {

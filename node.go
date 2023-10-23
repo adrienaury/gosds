@@ -8,7 +8,7 @@ type Node interface {
 }
 
 type Parented interface {
-	Root() Node
+	Root() Root
 	Parent() Node
 	Index() int
 	Key() string

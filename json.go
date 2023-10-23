@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/bytedance/sonic/ast"
 	"github.com/mailru/easyjson/jwriter"
 )
 
@@ -68,4 +69,12 @@ func MarshalWrite(node Node, output io.Writer) error {
 	}
 
 	return nil
+}
+
+func Unmarshal(jstr string) (Root, error) {
+	builder := &SonicBuilder{Builder: Builder{}}
+
+	ast.Preorder(jstr, builder, &ast.VisitorOptions{OnlyNumber: true})
+
+	return builder.Build(), nil
 }

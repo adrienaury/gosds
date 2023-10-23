@@ -36,3 +36,22 @@ func TestBuilder(t *testing.T) {
 
 	assert.NoError(t, builder.Build().MarshalWrite(os.Stdout))
 }
+
+func TestIntegrity(t *testing.T) {
+	t.Parallel()
+
+	jstr := `{"age":42,"name":"John","surname":"Doe","address":{"town":"Purple Town"},"tags":[1,true]}`
+
+	root, err := gosds.Unmarshal(jstr)
+
+	assert.NoError(t, err)
+
+	assert.Same(t, root, root.Root())
+	assert.Nil(t, root.Parent())
+	assert.Equal(t, 0, root.Index())
+	assert.Equal(t, "", root.Key())
+
+	root.AsObject().NodeForKey("address").Set("123 East Street")
+
+	assert.NoError(t, root.MarshalWrite(os.Stdout))
+}

@@ -53,7 +53,7 @@ func (r *root) Primitive() any {
 	return r.value.Primitive()
 }
 
-func (r *root) Root() Node         { return r.value } //nolint:ireturn
+func (r *root) Root() Root         { return r } //nolint:ireturn
 func (r *root) Exist() bool        { return r.value.Exist() }
 func (r *root) IsKeyed() bool      { return r.value.IsKeyed() }
 func (r *root) IsIndexed() bool    { return r.value.IsIndexed() }

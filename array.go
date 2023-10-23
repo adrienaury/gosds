@@ -52,7 +52,7 @@ func (a *array) AppendValue(val any) {
 	a.values = add(a.values, val, a)
 }
 
-func (a *array) Root() Node { //nolint:ireturn
+func (a *array) Root() Root { //nolint:ireturn
 	var result Node = a
 
 	for result.Parent() != nil {
