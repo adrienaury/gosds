@@ -15,7 +15,11 @@ type root struct {
 	value Node
 }
 
-func newRoot(val Node) *root {
+func NewRoot(val any) Root { //nolint:ireturn
+	return newRoot(val)
+}
+
+func newRoot(val any) *root {
 	root := &root{} //nolint:exhaustruct
 	root.Set(val)
 
