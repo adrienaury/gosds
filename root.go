@@ -1,6 +1,7 @@
 package gosds
 
 import (
+	"fmt"
 	"io"
 )
 
@@ -45,24 +46,34 @@ func (r *root) Set(val any) {
 	}
 }
 
-func (r *root) Root() Root         { return r }   //nolint:ireturn
-func (r *root) Parent() Node       { return nil } //nolint:ireturn
-func (r *root) Index() int         { return 0 }
-func (r *root) Key() string        { return "" }
-func (r *root) Get() any           { return r.value.Get() }
-func (r *root) Remove()            { r.value = nil }
-func (r *root) Primitive() any     { return r.value.Primitive() }
-func (r *root) Exist() bool        { return r.value.Exist() }
-func (r *root) IsKeyed() bool      { return r.value.IsKeyed() }
-func (r *root) IsIndexed() bool    { return r.value.IsIndexed() }
-func (r *root) IsObject() bool     { return r.value.IsObject() }
-func (r *root) IsArray() bool      { return r.value.IsArray() }
-func (r *root) IsRoot() bool       { return true }
-func (r *root) AsKeyed() Keyed     { return r.value.AsKeyed() }   //nolint:ireturn
-func (r *root) AsIndexed() Indexed { return r.value.AsIndexed() } //nolint:ireturn
-func (r *root) AsObject() Object   { return r.value.AsObject() }  //nolint:ireturn
-func (r *root) AsArray() Array     { return r.value.AsArray() }   //nolint:ireturn
-func (r *root) AsRoot() Root       { return r }                   //nolint:ireturn
+func (r *root) Root() Root              { return r }   //nolint:ireturn
+func (r *root) Parent() Node            { return nil } //nolint:ireturn
+func (r *root) Index() int              { return 0 }
+func (r *root) Key() string             { return "" }
+func (r *root) Get() any                { return r.value.Get() }
+func (r *root) Remove()                 { r.value = nil }
+func (r *root) Primitive() any          { return r.value.Primitive() }
+func (r *root) Exist() bool             { return r.value.Exist() }
+func (r *root) IsKeyed() bool           { return r.value.IsKeyed() }
+func (r *root) IsIndexed() bool         { return r.value.IsIndexed() }
+func (r *root) IsObject() bool          { return r.value.IsObject() }
+func (r *root) IsArray() bool           { return r.value.IsArray() }
+func (r *root) IsRoot() bool            { return true }
+func (r *root) AsKeyed() Keyed          { return r.value.AsKeyed() }   //nolint:ireturn
+func (r *root) AsIndexed() Indexed      { return r.value.AsIndexed() } //nolint:ireturn
+func (r *root) AsObject() Object        { return r.value.AsObject() }  //nolint:ireturn
+func (r *root) AsArray() Array          { return r.value.AsArray() }   //nolint:ireturn
+func (r *root) AsRoot() Root            { return r }                   //nolint:ireturn
+func (r *root) MarshalEncode(w Encoder) { r.value.MarshalEncode(w) }
 
-func (r *root) MarshalEncode(w Encoder)        { r.value.MarshalEncode(w) }
-func (r *root) MarshalWrite(w io.Writer) error { return r.value.MarshalWrite(w) } //nolint:wrapcheck
+func (r *root) MarshalWrite(w io.Writer) error {
+	if err := r.value.MarshalWrite(w); err != nil {
+		return err //nolint:wrapcheck
+	}
+
+	if _, err := w.Write([]byte{'\n'}); err != nil {
+		return fmt.Errorf("%w", err)
+	}
+
+	return nil
+}
