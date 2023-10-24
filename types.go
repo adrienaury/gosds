@@ -10,6 +10,7 @@ const defaultCapacity = 5
 
 type (
 	Writer = io.Writer
+	Reader = io.Reader
 	Number = json.Number
 )
 

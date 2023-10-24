@@ -1,7 +1,5 @@
 package gosds
 
-import "io"
-
 type Value interface {
 	Node
 	Container
@@ -128,6 +126,6 @@ func (v *value) MarshalEncode(output Encoder) { //nolint:cyclop
 	}
 }
 
-func (v *value) MarshalWrite(output io.Writer) error {
+func (v *value) MarshalWrite(output Writer) error {
 	return MarshalWrite(v, output)
 }

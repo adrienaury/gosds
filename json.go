@@ -1,6 +1,7 @@
 package gosds
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 
@@ -56,7 +57,7 @@ type EncoderBool interface {
 	Bool(v bool)
 }
 
-func MarshalWrite(node Node, output io.Writer) error {
+func MarshalWrite(node Node, output Writer) error {
 	writer := &jwriter.Writer{NoEscapeHTML: true} //nolint:exhaustruct
 	node.MarshalEncode(writer)
 
@@ -79,4 +80,18 @@ func Unmarshal(jstr string) (Root, error) { //nolint:ireturn
 	}
 
 	return builder.Build(), nil
+}
+
+func UnmarshalRead(input Reader) (Root, error) { //nolint:ireturn
+	scanner := bufio.NewScanner(input)
+
+	if scanner.Scan() {
+		return Unmarshal(scanner.Text())
+	}
+
+	if scanner.Err() != nil {
+		return nil, fmt.Errorf("%w", scanner.Err())
+	}
+
+	return nil, io.EOF
 }
