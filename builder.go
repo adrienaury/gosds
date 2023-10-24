@@ -13,6 +13,7 @@ var (
 type Builder interface {
 	AddKey(key string) error
 	AddValue(val any) error
+	AddKeyValue(key string, val any) error
 	StartObject() error
 	StartObjectWithCapacity(capacity int) error
 	StartArray() error
@@ -70,6 +71,14 @@ func (b *builder) AddValue(val any) error {
 	}
 
 	return nil
+}
+
+func (b *builder) AddKeyValue(key string, val any) error {
+	if err := b.AddKey(key); err != nil {
+		return err
+	}
+
+	return b.AddValue(val)
 }
 
 func (b *builder) StartObject() error {
