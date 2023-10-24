@@ -11,7 +11,7 @@ import (
 func TestBuilder(t *testing.T) {
 	t.Parallel()
 
-	builder := gosds.Builder{}
+	builder := gosds.NewBuilder()
 
 	assert.NoError(t, builder.StartObject())           // {
 	assert.NoError(t, builder.AddKey("name"))          // "name":

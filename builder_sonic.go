@@ -2,52 +2,65 @@ package gosds
 
 import "encoding/json"
 
-type SonicBuilder struct {
-	Builder
+type BuilderSonic interface { //nolint:interfacebloat
+	OnNull() error
+	OnBool(v bool) error
+	OnString(v string) error
+	OnInt64(_ int64, n json.Number) error
+	OnFloat64(_ float64, n json.Number) error
+	OnObjectBegin(capacity int) error
+	OnObjectKey(key string) error
+	OnObjectEnd() error
+	OnArrayBegin(capacity int) error
+	OnArrayEnd() error
+	Build() Root
 }
 
-func NewBuilderSonic() *SonicBuilder {
-	return &SonicBuilder{
-		Builder: *NewBuilder(),
+func NewBuilderSonic() BuilderSonic { //nolint:ireturn
+	return &builder{
+		current:   nil,
+		isObject:  false,
+		key:       nil,
+		finalized: nil,
 	}
 }
 
-func (b *SonicBuilder) OnNull() error {
+func (b *builder) OnNull() error {
 	return b.AddValue(nil)
 }
 
-func (b *SonicBuilder) OnBool(v bool) error {
+func (b *builder) OnBool(v bool) error {
 	return b.AddValue(v)
 }
 
-func (b *SonicBuilder) OnString(v string) error {
+func (b *builder) OnString(v string) error {
 	return b.AddValue(v)
 }
 
-func (b *SonicBuilder) OnInt64(_ int64, n json.Number) error {
+func (b *builder) OnInt64(_ int64, n json.Number) error {
 	return b.AddValue(n)
 }
 
-func (b *SonicBuilder) OnFloat64(_ float64, n json.Number) error {
+func (b *builder) OnFloat64(_ float64, n json.Number) error {
 	return b.AddValue(n)
 }
 
-func (b *SonicBuilder) OnObjectBegin(capacity int) error {
+func (b *builder) OnObjectBegin(capacity int) error {
 	return b.StartObjectWithCapacity(capacity)
 }
 
-func (b *SonicBuilder) OnObjectKey(key string) error {
+func (b *builder) OnObjectKey(key string) error {
 	return b.AddKey(key)
 }
 
-func (b *SonicBuilder) OnObjectEnd() error {
+func (b *builder) OnObjectEnd() error {
 	return b.EndObjectOrArray()
 }
 
-func (b *SonicBuilder) OnArrayBegin(capacity int) error {
+func (b *builder) OnArrayBegin(capacity int) error {
 	return b.StartArrayWithCapacity(capacity)
 }
 
-func (b *SonicBuilder) OnArrayEnd() error {
+func (b *builder) OnArrayEnd() error {
 	return b.EndObjectOrArray()
 }

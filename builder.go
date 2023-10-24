@@ -10,15 +10,26 @@ var (
 	ErrUnusedKey             = errors.New("key for value is unused")
 )
 
-type Builder struct {
+type Builder interface {
+	AddKey(key string) error
+	AddValue(val any) error
+	StartObject() error
+	StartObjectWithCapacity(capacity int) error
+	StartArray() error
+	StartArrayWithCapacity(capacity int) error
+	EndObjectOrArray() error
+	Build() Root
+}
+
+type builder struct {
 	current   Node
 	isObject  bool
 	key       *string
 	finalized Node
 }
 
-func NewBuilder() *Builder {
-	return &Builder{
+func NewBuilder() Builder { //nolint:ireturn
+	return &builder{
 		current:   nil,
 		isObject:  false,
 		key:       nil,
@@ -26,7 +37,7 @@ func NewBuilder() *Builder {
 	}
 }
 
-func (b *Builder) AddKey(key string) error {
+func (b *builder) AddKey(key string) error {
 	switch {
 	case b.finalized != nil:
 		return ErrFinalized
@@ -43,7 +54,7 @@ func (b *Builder) AddKey(key string) error {
 	return nil
 }
 
-func (b *Builder) AddValue(val any) error {
+func (b *builder) AddValue(val any) error {
 	switch {
 	case b.finalized != nil:
 		return ErrFinalized
@@ -61,11 +72,11 @@ func (b *Builder) AddValue(val any) error {
 	return nil
 }
 
-func (b *Builder) StartObject() error {
+func (b *builder) StartObject() error {
 	return b.StartObjectWithCapacity(0)
 }
 
-func (b *Builder) StartObjectWithCapacity(capacity int) error {
+func (b *builder) StartObjectWithCapacity(capacity int) error {
 	switch {
 	case b.finalized != nil:
 		return ErrFinalized
@@ -89,11 +100,11 @@ func (b *Builder) StartObjectWithCapacity(capacity int) error {
 	return nil
 }
 
-func (b *Builder) StartArray() error {
+func (b *builder) StartArray() error {
 	return b.StartArrayWithCapacity(0)
 }
 
-func (b *Builder) StartArrayWithCapacity(capacity int) error {
+func (b *builder) StartArrayWithCapacity(capacity int) error {
 	switch {
 	case b.finalized != nil:
 		return ErrFinalized
@@ -117,7 +128,7 @@ func (b *Builder) StartArrayWithCapacity(capacity int) error {
 	return nil
 }
 
-func (b *Builder) EndObjectOrArray() error {
+func (b *builder) EndObjectOrArray() error {
 	switch {
 	case b.finalized != nil:
 		return ErrFinalized
@@ -135,6 +146,6 @@ func (b *Builder) EndObjectOrArray() error {
 	return nil
 }
 
-func (b *Builder) Build() Root { //nolint:ireturn
+func (b *builder) Build() Root { //nolint:ireturn
 	return newRoot(b.finalized)
 }
