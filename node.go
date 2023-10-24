@@ -25,12 +25,12 @@ type Container interface {
 type Castable interface {
 	IsKeyed() bool
 	IsIndexed() bool
-	IsArray() bool
 	IsObject() bool
+	IsArray() bool
 	IsRoot() bool
 	AsKeyed() Keyed
 	AsIndexed() Indexed
-	AsArray() Array
 	AsObject() Object
+	AsArray() Array
 	AsRoot() Root
 }

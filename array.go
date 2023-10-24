@@ -14,6 +14,18 @@ type array struct {
 	root   Root
 }
 
+func NewArray() Array { //nolint:ireturn
+	return newArray()
+}
+
+func NewArrayWithCapacity(capacity int) Array { //nolint:ireturn
+	return newArrayWithCapacity(capacity)
+}
+
+func newArray() *array {
+	return newArrayWithCapacity(defaultCapacity)
+}
+
 func newArrayWithCapacity(capacity int) *array {
 	return &array{
 		values: make([]Node, 0, capacity),
@@ -31,7 +43,7 @@ func (a *array) Root() Root { //nolint:ireturn
 		result = result.Parent()
 	}
 
-	return result
+	return result.AsRoot()
 }
 
 func (a *array) Parent() Node { //nolint:ireturn
@@ -85,13 +97,13 @@ func (a *array) Primitive() any {
 func (a *array) Exist() bool        { return true }
 func (a *array) IsKeyed() bool      { return false }
 func (a *array) IsIndexed() bool    { return true }
-func (a *array) IsArray() bool      { return true }
 func (a *array) IsObject() bool     { return false }
+func (a *array) IsArray() bool      { return true }
 func (a *array) IsRoot() bool       { return a.root != nil }
 func (a *array) AsKeyed() Keyed     { return nil }    //nolint:ireturn
 func (a *array) AsIndexed() Indexed { return a }      //nolint:ireturn
-func (a *array) AsArray() Array     { return a }      //nolint:ireturn
 func (a *array) AsObject() Object   { return nil }    //nolint:ireturn
+func (a *array) AsArray() Array     { return a }      //nolint:ireturn
 func (a *array) AsRoot() Root       { return a.root } //nolint:ireturn
 
 func (a *array) MarshalEncode(output Encoder) {

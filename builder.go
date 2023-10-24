@@ -17,6 +17,15 @@ type Builder struct {
 	finalized Node
 }
 
+func NewBuilder() *Builder {
+	return &Builder{
+		current:   nil,
+		isObject:  false,
+		key:       nil,
+		finalized: nil,
+	}
+}
+
 func (b *Builder) AddKey(key string) error {
 	switch {
 	case b.finalized != nil:

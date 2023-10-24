@@ -71,10 +71,12 @@ func MarshalWrite(node Node, output io.Writer) error {
 	return nil
 }
 
-func Unmarshal(jstr string) (Root, error) {
-	builder := &SonicBuilder{Builder: Builder{}}
+func Unmarshal(jstr string) (Root, error) { //nolint:ireturn
+	builder := NewBuilderSonic()
 
-	ast.Preorder(jstr, builder, &ast.VisitorOptions{OnlyNumber: true})
+	if err := ast.Preorder(jstr, builder, &ast.VisitorOptions{OnlyNumber: true}); err != nil {
+		return nil, fmt.Errorf("%w", err)
+	}
 
 	return builder.Build(), nil
 }

@@ -6,6 +6,8 @@ import (
 	"io"
 )
 
+const defaultCapacity = 5
+
 type (
 	Writer = io.Writer
 	Number = json.Number

@@ -3,8 +3,8 @@ package gosds
 import "io"
 
 type Value interface {
-	Container
 	Node
+	Container
 }
 
 type value struct {
@@ -32,7 +32,7 @@ func (v *value) Root() Root { //nolint:ireturn
 		result = result.Parent()
 	}
 
-	return result
+	return result.AsRoot()
 }
 
 func (v *value) Parent() Node { //nolint:ireturn
@@ -82,13 +82,13 @@ func (v *value) Primitive() any     { return v.value }
 func (v *value) Exist() bool        { return true }
 func (v *value) IsKeyed() bool      { return false }
 func (v *value) IsIndexed() bool    { return false }
-func (v *value) IsArray() bool      { return false }
 func (v *value) IsObject() bool     { return false }
+func (v *value) IsArray() bool      { return false }
 func (v *value) IsRoot() bool       { return v.root != nil }
 func (v *value) AsKeyed() Keyed     { return nil }    //nolint:ireturn
 func (v *value) AsIndexed() Indexed { return nil }    //nolint:ireturn
-func (v *value) AsArray() Array     { return nil }    //nolint:ireturn
 func (v *value) AsObject() Object   { return nil }    //nolint:ireturn
+func (v *value) AsArray() Array     { return nil }    //nolint:ireturn
 func (v *value) AsRoot() Root       { return v.root } //nolint:ireturn
 
 func (v *value) MarshalEncode(output Encoder) { //nolint:cyclop

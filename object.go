@@ -5,9 +5,9 @@ import (
 )
 
 type Object interface {
+	Node
 	Keyed
 	Indexed
-	Node
 }
 
 type object struct {
@@ -18,6 +18,18 @@ type object struct {
 	root   Root
 }
 
+func NewObject() Object { //nolint:ireturn
+	return newObject()
+}
+
+func NewObjectWithCapacity(capacity int) Object { //nolint:ireturn
+	return newObjectWithCapacity(capacity)
+}
+
+func newObject() *object {
+	return newObjectWithCapacity(defaultCapacity)
+}
+
 func newObjectWithCapacity(capacity int) *object {
 	return &object{
 		list:   orderedmap.New[string, Node](capacity),
@@ -26,6 +38,105 @@ func newObjectWithCapacity(capacity int) *object {
 		key:    "",
 		root:   nil,
 	}
+}
+
+func (o *object) Root() Root { //nolint:ireturn
+	var result Node = o
+
+	for result.Parent() != nil {
+		result = result.Parent()
+	}
+
+	return result.AsRoot()
+}
+
+func (o *object) Parent() Node { //nolint:ireturn
+	return o.parent
+}
+
+func (o *object) Index() int {
+	return o.index
+}
+
+func (o *object) Key() string {
+	return o.key
+}
+
+func (o *object) Get() any {
+	return o
+}
+
+func (o *object) Set(val any) {
+	switch {
+	case o.Parent() != nil && o.Parent().IsKeyed():
+		o.Parent().AsKeyed().SetValueForKey(o.Key(), val)
+	case o.Parent() != nil && o.Parent().IsIndexed():
+		o.Parent().AsIndexed().SetValueAtIndex(o.Index(), val)
+	case o.IsRoot():
+		o.AsRoot().Set(val)
+	}
+}
+
+func (o *object) Remove() {
+	switch {
+	case o.Parent() != nil && o.Parent().IsKeyed():
+		o.Parent().AsKeyed().RemoveValueForKey(o.Key())
+	case o.Parent() != nil && o.Parent().IsIndexed():
+		o.Parent().AsIndexed().RemoveValueAtIndex(o.Index())
+	case o.IsRoot():
+		o.AsRoot().Remove()
+	}
+}
+
+func (o *object) Primitive() any {
+	result := make(map[string]any, o.Size())
+
+	for pair := o.list.Oldest(); pair != nil; pair = pair.Next() {
+		result[pair.Key] = pair.Value.Primitive()
+	}
+
+	return result
+}
+
+func (o *object) Exist() bool        { return true }
+func (o *object) IsKeyed() bool      { return true }
+func (o *object) IsIndexed() bool    { return true }
+func (o *object) IsObject() bool     { return true }
+func (o *object) IsArray() bool      { return false }
+func (o *object) IsRoot() bool       { return o.root != nil }
+func (o *object) AsKeyed() Keyed     { return o }      //nolint:ireturn
+func (o *object) AsIndexed() Indexed { return o }      //nolint:ireturn
+func (o *object) AsObject() Object   { return o }      //nolint:ireturn
+func (o *object) AsArray() Array     { return nil }    //nolint:ireturn
+func (o *object) AsRoot() Root       { return o.root } //nolint:ireturn
+
+func (o *object) MarshalEncode(output Encoder) {
+	output.RawByte('{')
+
+	printComma := false
+
+	for pair := o.list.Oldest(); pair != nil; pair = pair.Next() {
+		if _, ok := pair.Value.(*placeholder); ok {
+			continue
+		}
+
+		if printComma {
+			output.RawByte(',')
+		} else {
+			printComma = true
+		}
+
+		output.String(pair.Key)
+		output.RawByte(':')
+
+		pair.Value.MarshalEncode(output)
+	}
+
+	output.RawByte('}')
+}
+
+func (o *object) MarshalWrite(output Writer) error {
+	return MarshalWrite(o, output)
 }
 
 func (o *object) NodeForKey(key string) Node { //nolint:ireturn
@@ -120,103 +231,4 @@ func (o *object) PrimitiveArray() []any {
 	}
 
 	return result
-}
-
-func (o *object) Root() Root { //nolint:ireturn
-	var result Node = o
-
-	for result.Parent() != nil {
-		result = result.Parent()
-	}
-
-	return result
-}
-
-func (o *object) Parent() Node { //nolint:ireturn
-	return o.parent
-}
-
-func (o *object) Index() int {
-	return o.index
-}
-
-func (o *object) Key() string {
-	return o.key
-}
-
-func (o *object) Get() any {
-	return o
-}
-
-func (o *object) Set(val any) {
-	switch {
-	case o.Parent() != nil && o.Parent().IsKeyed():
-		o.Parent().AsKeyed().SetValueForKey(o.Key(), val)
-	case o.Parent() != nil && o.Parent().IsIndexed():
-		o.Parent().AsIndexed().SetValueAtIndex(o.Index(), val)
-	case o.IsRoot():
-		o.AsRoot().Set(val)
-	}
-}
-
-func (o *object) Remove() {
-	switch {
-	case o.Parent() != nil && o.Parent().IsKeyed():
-		o.Parent().AsKeyed().RemoveValueForKey(o.Key())
-	case o.Parent() != nil && o.Parent().IsIndexed():
-		o.Parent().AsIndexed().RemoveValueAtIndex(o.Index())
-	case o.IsRoot():
-		o.AsRoot().Remove()
-	}
-}
-
-func (o *object) Primitive() any {
-	result := make(map[string]any, o.Size())
-
-	for pair := o.list.Oldest(); pair != nil; pair = pair.Next() {
-		result[pair.Key] = pair.Value.Primitive()
-	}
-
-	return result
-}
-
-func (o *object) Exist() bool        { return true }
-func (o *object) IsKeyed() bool      { return true }
-func (o *object) IsIndexed() bool    { return true }
-func (o *object) IsArray() bool      { return false }
-func (o *object) IsObject() bool     { return true }
-func (o *object) IsRoot() bool       { return o.root != nil }
-func (o *object) AsKeyed() Keyed     { return o }      //nolint:ireturn
-func (o *object) AsIndexed() Indexed { return o }      //nolint:ireturn
-func (o *object) AsArray() Array     { return nil }    //nolint:ireturn
-func (o *object) AsObject() Object   { return o }      //nolint:ireturn
-func (o *object) AsRoot() Root       { return o.root } //nolint:ireturn
-
-func (o *object) MarshalEncode(output Encoder) {
-	output.RawByte('{')
-
-	printComma := false
-
-	for pair := o.list.Oldest(); pair != nil; pair = pair.Next() {
-		if _, ok := pair.Value.(*placeholder); ok {
-			continue
-		}
-
-		if printComma {
-			output.RawByte(',')
-		} else {
-			printComma = true
-		}
-
-		output.String(pair.Key)
-		output.RawByte(':')
-
-		pair.Value.MarshalEncode(output)
-	}
-
-	output.RawByte('}')
-}
-
-func (o *object) MarshalWrite(output Writer) error {
-	return MarshalWrite(o, output)
 }
