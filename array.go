@@ -1,9 +1,9 @@
 package gosds
 
 type Array interface {
+	Node
 	Indexed
 	AppendValue(value any)
-	Node
 }
 
 type array struct {
@@ -22,34 +22,6 @@ func newArrayWithCapacity(capacity int) *array {
 		key:    "",
 		root:   nil,
 	}
-}
-
-func (a *array) NodeAtIndex(index int) Node { //nolint:ireturn
-	return a.values[index]
-}
-
-func (a *array) ValueAtIndex(index int) any {
-	return a.values[index].Get()
-}
-
-func (a *array) SetValueAtIndex(index int, val any) {
-	a.values = set(a.values, val, index, a)
-}
-
-func (a *array) RemoveValueAtIndex(index int) {
-	a.values = append(a.values[:index], a.values[index+1:]...)
-}
-
-func (a *array) Size() int {
-	return len(a.values)
-}
-
-func (a *array) PrimitiveArray() []any {
-	return a.Primitive().([]any) //nolint:forcetypeassert
-}
-
-func (a *array) AppendValue(val any) {
-	a.values = add(a.values, val, a)
 }
 
 func (a *array) Root() Root { //nolint:ireturn
@@ -138,4 +110,32 @@ func (a *array) MarshalEncode(output Encoder) {
 
 func (a *array) MarshalWrite(output Writer) error {
 	return MarshalWrite(a, output)
+}
+
+func (a *array) NodeAtIndex(index int) Node { //nolint:ireturn
+	return a.values[index]
+}
+
+func (a *array) ValueAtIndex(index int) any {
+	return a.values[index].Get()
+}
+
+func (a *array) SetValueAtIndex(index int, val any) {
+	a.values = set(a.values, val, index, a)
+}
+
+func (a *array) RemoveValueAtIndex(index int) {
+	a.values = append(a.values[:index], a.values[index+1:]...)
+}
+
+func (a *array) Size() int {
+	return len(a.values)
+}
+
+func (a *array) PrimitiveArray() []any {
+	return a.Primitive().([]any) //nolint:forcetypeassert
+}
+
+func (a *array) AppendValue(val any) {
+	a.values = add(a.values, val, a)
 }
