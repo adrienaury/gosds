@@ -1,54 +1,36 @@
 package gosds
 
-import (
-	"fmt"
-	"io"
-
-	"github.com/mailru/easyjson/jwriter"
-)
-
 type Node interface {
 	Parented
 	Container
 	Castable
-	JSONMarshaller
+	Marshaler
 }
 
 type Parented interface {
+	Root() Root
 	Parent() Node
 	Index() int
+	Key() string
+}
+
+type Container interface {
+	Get() any
+	Set(val any)
+	Remove()
+	Primitive() any
+	Exist() bool
 }
 
 type Castable interface {
-	AsObject() (Object, bool)
-	AsArray() (Array, bool)
-	AsValue() (Value, bool)
-	AsIndexed() (Indexed, bool)
-	AsRoot() (Root, bool)
-
-	MustObject() Object
-	MustArray() Array
-	MustValue() Value
-	MustIndexed() Indexed
-	MustRoot() Root
-}
-
-type JSONMarshaller interface {
-	MarshalEncode(*jwriter.Writer)
-	MarshalWrite(io.Writer) error
-}
-
-func MarshalWrite(node Node, output io.Writer) error {
-	writer := &jwriter.Writer{NoEscapeHTML: true} //nolint:exhaustruct
-	node.MarshalEncode(writer)
-
-	if writer.Error != nil {
-		return fmt.Errorf("%w", writer.Error)
-	}
-
-	if _, err := writer.DumpTo(output); err != nil {
-		return fmt.Errorf("%w", err)
-	}
-
-	return nil
+	IsKeyed() bool
+	IsIndexed() bool
+	IsObject() bool
+	IsArray() bool
+	IsRoot() bool
+	AsKeyed() Keyed
+	AsIndexed() Indexed
+	AsObject() Object
+	AsArray() Array
+	AsRoot() Root
 }

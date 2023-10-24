@@ -2,13 +2,12 @@ package gosds
 
 import (
 	"io"
-
-	"github.com/mailru/easyjson/jwriter"
 )
 
 type placeholder struct {
 	parent Node
 	index  int
+	key    string
 	root   Root
 }
 
@@ -17,31 +16,57 @@ func newPlaceholder() *placeholder {
 		parent: nil,
 		index:  0,
 		root:   nil,
+		key:    "",
 	}
+}
+
+func (p *placeholder) Root() Root { //nolint:ireturn
+	var result Node = p
+
+	for result.Parent() != nil {
+		result = result.Parent()
+	}
+
+	return result.AsRoot()
 }
 
 func (p *placeholder) Set(val any) {
-	if indexedParent, ok := p.Parent().AsIndexed(); ok {
-		indexedParent.SetValueAtIndex(p.Index(), val)
-	} else if root, ok := p.AsRoot(); ok {
-		root.Set(val)
+	switch {
+	case p.Parent() != nil && p.Parent().IsKeyed():
+		p.Parent().AsKeyed().SetValueForKey(p.Key(), val)
+	case p.Parent() != nil && p.Parent().IsIndexed():
+		p.Parent().AsIndexed().SetValueAtIndex(p.Index(), val)
+	case p.IsRoot():
+		p.AsRoot().Set(val)
 	}
 }
 
-func (p *placeholder) Parent() Node                  { return p.parent } //nolint:ireturn
-func (p *placeholder) Index() int                    { return p.index }
-func (p *placeholder) Get() any                      { return p }
-func (p *placeholder) Primitive() any                { return nil }
-func (p *placeholder) Exist() bool                   { return false }
-func (p *placeholder) AsObject() (Object, bool)      { return nil, false }            //nolint:ireturn
-func (p *placeholder) AsArray() (Array, bool)        { return nil, false }            //nolint:ireturn
-func (p *placeholder) AsValue() (Value, bool)        { return nil, false }            //nolint:ireturn
-func (p *placeholder) AsIndexed() (Indexed, bool)    { return nil, false }            //nolint:ireturn
-func (p *placeholder) AsRoot() (Root, bool)          { return p.root, p.root != nil } //nolint:ireturn
-func (p *placeholder) MustObject() Object            { return nil }                   //nolint:ireturn
-func (p *placeholder) MustArray() Array              { return nil }                   //nolint:ireturn
-func (p *placeholder) MustValue() Value              { return nil }                   //nolint:ireturn
-func (p *placeholder) MustIndexed() Indexed          { return nil }                   //nolint:ireturn
-func (p *placeholder) MustRoot() Root                { return p.root }                //nolint:ireturn
-func (p *placeholder) MarshalEncode(*jwriter.Writer) { panic("") }
-func (p *placeholder) MarshalWrite(io.Writer) error  { panic("") }
+func (p *placeholder) Remove() {
+	switch {
+	case p.Parent() != nil && p.Parent().IsKeyed():
+		p.Parent().AsKeyed().RemoveValueForKey(p.Key())
+	case p.Parent() != nil && p.Parent().IsIndexed():
+		p.Parent().AsIndexed().RemoveValueAtIndex(p.Index())
+	case p.IsRoot():
+		p.AsRoot().Remove()
+	}
+}
+
+func (p *placeholder) Parent() Node                 { return p.parent } //nolint:ireturn
+func (p *placeholder) Index() int                   { return p.index }
+func (p *placeholder) Key() string                  { return p.key }
+func (p *placeholder) Get() any                     { return p }
+func (p *placeholder) Primitive() any               { return nil }
+func (p *placeholder) Exist() bool                  { return false }
+func (p *placeholder) IsKeyed() bool                { return false }
+func (p *placeholder) IsIndexed() bool              { return false }
+func (p *placeholder) IsObject() bool               { return false }
+func (p *placeholder) IsArray() bool                { return false }
+func (p *placeholder) IsRoot() bool                 { return p.root != nil }
+func (p *placeholder) AsKeyed() Keyed               { return nil }    //nolint:ireturn
+func (p *placeholder) AsIndexed() Indexed           { return nil }    //nolint:ireturn
+func (p *placeholder) AsObject() Object             { return nil }    //nolint:ireturn
+func (p *placeholder) AsArray() Array               { return nil }    //nolint:ireturn
+func (p *placeholder) AsRoot() Root                 { return p.root } //nolint:ireturn
+func (p *placeholder) MarshalEncode(Encoder)        { panic("") }
+func (p *placeholder) MarshalWrite(io.Writer) error { panic("") }

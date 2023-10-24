@@ -1,9 +1,7 @@
 package gosds
 
 import (
-	"io"
-
-	"github.com/mailru/easyjson/jwriter"
+	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
 type Object interface {
@@ -13,14 +11,11 @@ type Object interface {
 }
 
 type object struct {
-	values  []Node
-	keys    []string
-	indexes map[string]int
-
+	list   *orderedmap.OrderedMap[string, Node]
 	parent Node
 	index  int
-
-	root Root
+	key    string
+	root   Root
 }
 
 func NewObject() Object { //nolint:ireturn
@@ -32,25 +27,27 @@ func NewObjectWithCapacity(capacity int) Object { //nolint:ireturn
 }
 
 func newObject() *object {
-	return &object{
-		values:  []Node{},
-		keys:    []string{},
-		indexes: map[string]int{},
-		parent:  nil,
-		index:   0,
-		root:    nil,
-	}
+	return newObjectWithCapacity(defaultCapacity)
 }
 
 func newObjectWithCapacity(capacity int) *object {
 	return &object{
-		values:  make([]Node, 0, capacity),
-		keys:    make([]string, 0, capacity),
-		indexes: make(map[string]int, capacity),
-		parent:  nil,
-		index:   0,
-		root:    nil,
+		list:   orderedmap.New[string, Node](capacity),
+		parent: nil,
+		index:  0,
+		key:    "",
+		root:   nil,
 	}
+}
+
+func (o *object) Root() Root { //nolint:ireturn
+	var result Node = o
+
+	for result.Parent() != nil {
+		result = result.Parent()
+	}
+
+	return result.AsRoot()
 }
 
 func (o *object) Parent() Node { //nolint:ireturn
@@ -61,63 +58,122 @@ func (o *object) Index() int {
 	return o.index
 }
 
+func (o *object) Key() string {
+	return o.key
+}
+
 func (o *object) Get() any {
 	return o
 }
 
 func (o *object) Set(val any) {
-	if indexedParent, ok := o.Parent().AsIndexed(); ok {
-		indexedParent.SetValueAtIndex(o.Index(), val)
-	} else if root, ok := o.AsRoot(); ok {
-		root.Set(val)
+	switch {
+	case o.Parent() != nil && o.Parent().IsKeyed():
+		o.Parent().AsKeyed().SetValueForKey(o.Key(), val)
+	case o.Parent() != nil && o.Parent().IsIndexed():
+		o.Parent().AsIndexed().SetValueAtIndex(o.Index(), val)
+	case o.IsRoot():
+		o.AsRoot().Set(val)
 	}
 }
 
-func (o *object) AsObject() (Object, bool) { //nolint:ireturn
-	return o, true
-}
-
-func (o *object) AsArray() (Array, bool) { //nolint:ireturn
-	return nil, false
-}
-
-func (o *object) AsValue() (Value, bool) { //nolint:ireturn
-	return nil, false
-}
-
-func (o *object) AsIndexed() (Indexed, bool) { //nolint:ireturn
-	return o, true
-}
-
-func (o *object) AsRoot() (Root, bool) { //nolint:ireturn
-	return o.root, o.root != nil
-}
-
-func (o *object) MustObject() Object { //nolint:ireturn
-	return o
-}
-
-func (o *object) MustArray() Array { //nolint:ireturn
-	return nil
-}
-
-func (o *object) MustValue() Value { //nolint:ireturn
-	return nil
-}
-
-func (o *object) MustIndexed() Indexed { //nolint:ireturn
-	return o
-}
-
-func (o *object) MustRoot() Root { //nolint:ireturn
-	return o.root
+func (o *object) Remove() {
+	switch {
+	case o.Parent() != nil && o.Parent().IsKeyed():
+		o.Parent().AsKeyed().RemoveValueForKey(o.Key())
+	case o.Parent() != nil && o.Parent().IsIndexed():
+		o.Parent().AsIndexed().RemoveValueAtIndex(o.Index())
+	case o.IsRoot():
+		o.AsRoot().Remove()
+	}
 }
 
 func (o *object) Primitive() any {
-	result := make(map[string]any, len(o.keys))
+	result := make(map[string]any, o.Size())
 
-	for idx, key := range o.keys {
-		result[key] = o.values[idx].Primitive()
+	for pair := o.list.Oldest(); pair != nil; pair = pair.Next() {
+		result[pair.Key] = pair.Value.Primitive()
+	}
+
+	return result
+}
+
+func (o *object) Exist() bool        { return true }
+func (o *object) IsKeyed() bool      { return true }
+func (o *object) IsIndexed() bool    { return true }
+func (o *object) IsObject() bool     { return true }
+func (o *object) IsArray() bool      { return false }
+func (o *object) IsRoot() bool       { return o.root != nil }
+func (o *object) AsKeyed() Keyed     { return o }      //nolint:ireturn
+func (o *object) AsIndexed() Indexed { return o }      //nolint:ireturn
+func (o *object) AsObject() Object   { return o }      //nolint:ireturn
+func (o *object) AsArray() Array     { return nil }    //nolint:ireturn
+func (o *object) AsRoot() Root       { return o.root } //nolint:ireturn
+
+func (o *object) MarshalEncode(output Encoder) {
+	output.RawByte('{')
+
+	printComma := false
+
+	for pair := o.list.Oldest(); pair != nil; pair = pair.Next() {
+		if _, ok := pair.Value.(*placeholder); ok {
+			continue
+		}
+
+		if printComma {
+			output.RawByte(',')
+		} else {
+			printComma = true
+		}
+
+		output.String(pair.Key)
+		output.RawByte(':')
+
+		pair.Value.MarshalEncode(output)
+	}
+
+	output.RawByte('}')
+}
+
+func (o *object) MarshalWrite(output Writer) error {
+	return MarshalWrite(o, output)
+}
+
+func (o *object) NodeForKey(key string) Node { //nolint:ireturn
+	val, has := o.list.Get(key)
+	if !has {
+		placeholder := newPlaceholder()
+		o.SetValueForKey(key, placeholder)
+
+		return placeholder
+	}
+
+	return val
+}
+
+func (o *object) ValueForKey(key string) (any, bool) {
+	node := o.NodeForKey(key)
+
+	if node == nil {
+		return nil, false
+	}
+
+	return node.Get(), true
+}
+
+func (o *object) SetValueForKey(key string, val any) {
+	o.list.Set(key, accept(val, key, 0, o))
+}
+
+func (o *object) RemoveValueForKey(key string) {
+	o.list.Delete(key)
+}
+
+func (o *object) Keys() []string {
+	result := make([]string, 0, o.Size())
+
+	for pair := o.list.Oldest(); pair != nil; pair = pair.Next() {
+		result = append(result, pair.Key)
 	}
 
 	return result
@@ -127,120 +183,52 @@ func (o *object) PrimitiveObject() map[string]any {
 	return o.Primitive().(map[string]any) //nolint:forcetypeassert
 }
 
-func (o *object) PrimitiveArray() []any {
-	result := make([]any, len(o.values))
-
-	for index, val := range o.values {
-		result[index] = val.Primitive()
-	}
-
-	return result
-}
-
-func (o *object) Exist() bool {
-	return true
-}
-
-func (o *object) NodeForKey(key string) Node { //nolint:ireturn
-	idx, has := o.indexes[key]
-	if !has {
-		placeholder := newPlaceholder()
-		o.SetValueForKey(key, placeholder)
-
-		return placeholder
-	}
-
-	return o.values[idx]
-}
-
 func (o *object) NodeAtIndex(index int) Node { //nolint:ireturn
-	return o.values[index]
-}
-
-func (o *object) ValueForKey(key string) (any, bool) {
-	idx, has := o.indexes[key]
-	if !has {
-		return nil, false
+	for pair := o.list.Oldest(); pair != nil; pair = pair.Next() {
+		if pair.Value.Index() == index {
+			return pair.Value
+		}
 	}
 
-	return o.values[idx].Get(), has
-}
-
-func (o *object) SetValueForKey(key string, val any) {
-	index := len(o.keys)
-
-	o.indexes[key] = index
-	o.keys = append(o.keys, key)
-	o.values = add(o.values, val, o)
-}
-
-func (o *object) RemoveValueForKey(key string) {
-	if idx, has := o.indexes[key]; has {
-		o.RemoveValueAtIndex(idx)
-	}
+	return nil
 }
 
 func (o *object) ValueAtIndex(index int) any {
-	if index >= len(o.values) {
-		return nil
+	node := o.NodeAtIndex(index)
+
+	if node != nil {
+		return node.Get()
 	}
 
-	return o.values[index].Get()
+	return nil
 }
 
-func (o *object) SetValueAtIndex(index int, val any) {
-	o.values = set(o.values, val, index, o)
+func (o *object) SetValueAtIndex(index int, value any) {
+	for pair := o.list.Oldest(); pair != nil; pair = pair.Next() {
+		if pair.Value.Index() == index {
+			o.SetValueForKey(pair.Key, value)
+		}
+	}
 }
 
 func (o *object) RemoveValueAtIndex(index int) {
-	if index >= len(o.values) {
-		return
-	}
-
-	delete(o.indexes, o.keys[index])
-	o.keys = append(o.keys[:index], o.keys[index+1:]...)
-	o.values = append(o.values[:index], o.values[index+1:]...)
-
-	for k, v := range o.indexes {
-		if v > index {
-			o.indexes[k] = v - 1
+	for pair := o.list.Oldest(); pair != nil; pair = pair.Next() {
+		if pair.Value.Index() == index {
+			o.list.Delete(pair.Key)
 		}
 	}
 }
 
 func (o *object) Size() int {
-	return len(o.keys)
+	return o.list.Len()
 }
 
-func (o *object) Keys() []string {
-	return o.keys
-}
+func (o *object) PrimitiveArray() []any {
+	result := make([]any, 0, o.Size())
 
-func (o *object) MarshalEncode(output *jwriter.Writer) {
-	output.RawByte('{')
-
-	count := 0
-
-	for index, key := range o.keys {
-		if _, ok := o.values[index].(*placeholder); ok {
-			count++
-
-			continue
-		}
-
-		if index > count {
-			output.RawByte(',')
-		}
-
-		output.String(key)
-		output.RawByte(':')
-
-		o.values[index].MarshalEncode(output)
+	for pair := o.list.Oldest(); pair != nil; pair = pair.Next() {
+		result = append(result, pair.Value.Primitive())
 	}
 
-	output.RawByte('}')
-}
-
-func (o *object) MarshalWrite(output io.Writer) error {
-	return MarshalWrite(o, output)
+	return result
 }

@@ -1,37 +1,38 @@
 package gosds
 
-import (
-	"io"
-
-	"github.com/mailru/easyjson/jwriter"
-)
+import "io"
 
 type Value interface {
 	Node
 	Container
-
-	// Int64() (int64, bool)
-	// MustInt64() int64
 }
 
 type value struct {
 	parent Node
 	index  int
+	key    string
 	value  any
 	root   Root
-}
-
-func NewValue(val any) Value { //nolint:ireturn
-	return newValue(val)
 }
 
 func newValue(val any) *value {
 	return &value{
 		parent: nil,
 		index:  0,
+		key:    "",
 		value:  val,
 		root:   nil,
 	}
+}
+
+func (v *value) Root() Root { //nolint:ireturn
+	var result Node = v
+
+	for result.Parent() != nil {
+		result = result.Parent()
+	}
+
+	return result.AsRoot()
 }
 
 func (v *value) Parent() Node { //nolint:ireturn
@@ -42,56 +43,12 @@ func (v *value) Index() int {
 	return v.index
 }
 
+func (v *value) Key() string {
+	return v.key
+}
+
 func (v *value) Get() any {
 	return v.value
-}
-
-func (v *value) AsObject() (Object, bool) { //nolint:ireturn
-	return nil, false
-}
-
-func (v *value) AsArray() (Array, bool) { //nolint:ireturn
-	return nil, false
-}
-
-func (v *value) AsValue() (Value, bool) { //nolint:ireturn
-	return v, true
-}
-
-func (v *value) AsIndexed() (Indexed, bool) { //nolint:ireturn
-	return nil, false
-}
-
-func (v *value) AsRoot() (Root, bool) { //nolint:ireturn
-	return v.root, v.root != nil
-}
-
-func (v *value) MustObject() Object { //nolint:ireturn
-	return nil
-}
-
-func (v *value) MustArray() Array { //nolint:ireturn
-	return nil
-}
-
-func (v *value) MustValue() Value { //nolint:ireturn
-	return v
-}
-
-func (v *value) MustIndexed() Indexed { //nolint:ireturn
-	return nil
-}
-
-func (v *value) MustRoot() Root { //nolint:ireturn
-	return v.root
-}
-
-func (v *value) Primitive() any {
-	return v.value
-}
-
-func (v *value) Exist() bool {
-	return true
 }
 
 func (v *value) Set(val any) {
@@ -99,15 +56,42 @@ func (v *value) Set(val any) {
 	case string, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8, float64, float32, bool, Number, nil:
 		v.value = val
 	default:
-		if indexedParent, ok := v.Parent().AsIndexed(); ok {
-			indexedParent.SetValueAtIndex(v.Index(), val)
-		} else if root, ok := v.AsRoot(); ok {
-			root.Set(val)
+		switch {
+		case v.Parent() != nil && v.Parent().IsKeyed():
+			v.Parent().AsKeyed().SetValueForKey(v.Key(), val)
+		case v.Parent() != nil && v.Parent().IsIndexed():
+			v.Parent().AsIndexed().SetValueAtIndex(v.Index(), val)
+		case v.IsRoot():
+			v.AsRoot().Set(val)
 		}
 	}
 }
 
-func (v *value) MarshalEncode(output *jwriter.Writer) { //nolint:cyclop
+func (v *value) Remove() {
+	switch {
+	case v.Parent() != nil && v.Parent().IsKeyed():
+		v.Parent().AsKeyed().RemoveValueForKey(v.Key())
+	case v.Parent() != nil && v.Parent().IsIndexed():
+		v.Parent().AsIndexed().RemoveValueAtIndex(v.Index())
+	case v.IsRoot():
+		v.AsRoot().Remove()
+	}
+}
+
+func (v *value) Primitive() any     { return v.value }
+func (v *value) Exist() bool        { return true }
+func (v *value) IsKeyed() bool      { return false }
+func (v *value) IsIndexed() bool    { return false }
+func (v *value) IsObject() bool     { return false }
+func (v *value) IsArray() bool      { return false }
+func (v *value) IsRoot() bool       { return v.root != nil }
+func (v *value) AsKeyed() Keyed     { return nil }    //nolint:ireturn
+func (v *value) AsIndexed() Indexed { return nil }    //nolint:ireturn
+func (v *value) AsObject() Object   { return nil }    //nolint:ireturn
+func (v *value) AsArray() Array     { return nil }    //nolint:ireturn
+func (v *value) AsRoot() Root       { return v.root } //nolint:ireturn
+
+func (v *value) MarshalEncode(output Encoder) { //nolint:cyclop
 	switch typedValue := v.value.(type) {
 	case string:
 		output.String(typedValue)
