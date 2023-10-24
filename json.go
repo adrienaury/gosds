@@ -2,8 +2,10 @@ package gosds
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/bytedance/sonic/ast"
 	"github.com/mailru/easyjson/jwriter"
@@ -57,6 +59,21 @@ type EncoderBool interface {
 	Bool(v bool)
 }
 
+type Decoder interface {
+	More() bool
+	Token() (json.Token, error)
+}
+
+func Marshal(node Node) (string, error) {
+	builder := &strings.Builder{}
+
+	if err := MarshalWrite(node, builder); err != nil {
+		return "", err
+	}
+
+	return builder.String(), nil
+}
+
 func MarshalWrite(node Node, output Writer) error {
 	writer := &jwriter.Writer{NoEscapeHTML: true} //nolint:exhaustruct
 	node.MarshalEncode(writer)
@@ -70,6 +87,10 @@ func MarshalWrite(node Node, output Writer) error {
 	}
 
 	return nil
+}
+
+func MarshalEncode(node Node, output Encoder) {
+	node.MarshalEncode(output)
 }
 
 func Unmarshal(jstr string) (Root, error) { //nolint:ireturn
@@ -94,4 +115,8 @@ func UnmarshalRead(input Reader) (Root, error) { //nolint:ireturn
 	}
 
 	return nil, io.EOF
+}
+
+func UnmarshalDecode(_ Decoder) error {
+	panic("not implemented")
 }
